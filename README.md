@@ -6,7 +6,7 @@ reference macroinvertebrate sites. This code is useful in determining natural va
 
 Open NMDS-GenusIBI.zip, use NMDS.Rproj project with NMDS folder, use 'FinalSummaryMarkdown.Rmd' to look at final NMDS and MRPP results.
 
-Work in R4.0.3 and R4.1.2 with the following packages:
+Code works in R4.0.3 and R4.1.2 with the following packages:
 library(vegan)
 library(dplyr)
 library(lubridate)

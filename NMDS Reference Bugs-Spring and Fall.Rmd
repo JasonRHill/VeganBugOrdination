@@ -1,0 +1,1155 @@
+---
+title: "NMDS Reference Bugs- Spring and Fall separated"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+always_allow_html: yes
+fig_width: 6 
+fig_height: 4 
+---
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+
+Packages used for NMDS: vegan (version 2.5-7)
+
+```{r setup, include=FALSE}
+
+
+#R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+#Copyright (C) 2020 The R Foundation for Statistical Computing
+#Platform: x86_64-w64-mingw32/x64 (64-bit)
+#knitr::opts_chunk$set(echo = TRUE)
+
+library(vegan)
+library(dplyr)
+library(lubridate)
+library(purrr)
+library(ggplot2)
+library(readxl)
+library(tidyr)
+library(DT)
+library(data.table)
+
+# Set working directory
+
+setwd('C:/Backup/R/NMDS/NMDS')
+
+```
+## Methods
+
+
+<font size="4"> These NMDS results will support the Genus level IBI development process. No West Virginia DEP data is used in this analysis. The ordinations presented in this document were separated by spring and fall and NMDS was run separately. The natural characteristics displayed in the following figures are characteristics identified as potentially having different benthic communities when separated by season. In previous iterations of these ordinations, the expert group identified that season clustered into two separate groups, spring and fall. This means that the benthic communities are possibly different between spring and fall communities. 
+
+The dataset used is a subset of reference stations collected in Virginia and only includes noncoastal sites that are not located in the Southeastern Plains or MidAtlantic Coastal. If stations appeared in the dataset more than 4 times, then the most recent 4 samples were used and the rest removed. Taxa that occurred in the dataset < 5% of the time were removed. The data was log10 +1 transformed. Environmental factors were compiled for each station and used to plot over the NMDS to show environmental variation associated with the community matrix. The envfit function in Vegan was used to plot the continuous environmental variables. </font>
+
+
+
+```{r files, echo=FALSE}
+
+###Load Data
+bugs <- read_excel('data/benthics_ExcludedTaxaDropped_LBedits.xlsx', sheet='benthics_ExcludedTaxaDropped_LB')
+bugs$Collection.Date<-as.Date(bugs$Collection.Date, format="%m/%d/%Y")
+
+env <- read.csv('data/stationsSpatial_withAllData.csv')%>%
+  subset(`X` == "Ref")%>%
+  subset(`US_L3NAME`!="Middle Atlantic Coastal Plain")%>%
+  subset(`US_L3NAME`!="Southeastern Plains")
+
+
+env$`Collection.Date`<-as.Date(env$`Collection.Date`, format="%m/%d/%Y")
+#bugs<-read.csv("benthics_11June2021Final.csv")
+
+Env_noncoast_2<-read.csv("data//ReferenceSpringFall_env_noncoast.csv")%>%
+  subset(Season!="Outside Sample Window")
+Env_noncoast_2$`Collection.Date`<-as.Date(Env_noncoast_2$`Collection.Date`, format="%m/%d/%Y")
+
+
+Refbugs <-left_join(bugs,Env_noncoast_2, by=c("StationID", "Collection.Date"))%>%
+  subset(`X` == "Ref")%>%
+  subset(`US_L3NAME`!="Middle Atlantic Coastal Plain")%>%
+  subset(`US_L3NAME`!="Southeastern Plains")
+
+Springbugs<-subset(Refbugs, `Season`=="Spring")%>%
+  unique()
+Springbugs2<-Springbugs[ , 1:412]
+
+
+Fallbugs<-subset(Refbugs, `Season`=="Fall")%>%
+  unique()
+Fallbugs2<-Fallbugs[ , 1:412]
+
+# 
+# 
+# bioregion <- function(x) {
+# if(x == 67 | x == 69 | x== 66) y <- "Mountain"
+# 
+# if(x  == 63 | x == 65 ) y <- "Coast"
+# 
+# if(x == 64 | x== 45)  y <- "Piedmont"
+# 
+# return(y)
+# }
+# 
+# streamcategory<- function(x) {
+# if(x == 1 || x == 2 ) y <- "Small"
+# if(x==3 || x == 4 || x== 5 || x== 6) y <- "Large"
+# return(y)
+# }
+# 
+#  env$StreamCate<-sapply(env$Order, streamcategory)
+# # 
+ #env$Bioregion<-sapply(env$US_L3CODE, bioregion)
+# 
+# 
+# springbugs<-write.csv("Springbugs", "data\\SpringReferenceBugs.csv", row.names=FALSE)
+# 
+# fallbugs<-write.csv("Fallbugs", "data\\FallReferenceBugs.csv", row.names=FALSE) 
+# 
+
+#refbugs_noncoast<-write.csv(env, "data\\ReferenceSpringFall_env_noncoast.csv", row.names=FALSE)
+
+
+
+
+
+###JRH used to check data
+
+
+Bugenv_spring<-left_join(Env_noncoast_2, bugs, by=c("StationID", "Collection.Date"))%>%
+  select("StationID", "X", "Year", "JulianDate", "Latitude", "Longitude", "Collection.Date", "Season" , "Gradient", "Coastal", "US_L3CODE", "US_L3NAME", "US_L4NAME", "ASSESS_REG", "Tidal", "VAHUSB", "Basin", "Basin_Code", "CountyCityName", "WQS_CLASS", "WQS_SPSTDS", "WQS_PWS", "WQS_TROUT", "WQS_TIER_III", "Order","EDASOrder", "totalArea_sqMile", "ELEVMEAN", "SLPMEAN", "wshdRain_mmyr", "siteRain_mmyr" , "Bioregion", "StreamCate", "BioregionSize")%>%
+  subset(`X`== "Ref")%>%
+  subset(`Season`=="Spring")%>%
+  unique()
+
+
+Bugenv_Fall<-left_join(Env_noncoast_2, bugs, by=c("StationID", "Collection.Date"))%>%
+  select("StationID", "X", "Year", "JulianDate", "Latitude", "Longitude", "Collection.Date", "Season" , "Gradient", "Coastal", "US_L3CODE", "US_L3NAME", "US_L4NAME", "ASSESS_REG", "Tidal", "VAHUSB", "Basin", "Basin_Code", "CountyCityName", "WQS_CLASS", "WQS_SPSTDS", "WQS_PWS", "WQS_TROUT", "WQS_TIER_III", "Order","EDASOrder", "totalArea_sqMile", "ELEVMEAN", "SLPMEAN", "wshdRain_mmyr", "siteRain_mmyr", "Bioregion", "StreamCate", "BioregionSize" )%>%
+  subset(`X`== "Ref")%>%
+  subset(`Season`=="Fall")%>%
+  unique()
+
+###Wait for lucy or emma here....###
+Bugenv_spring[sapply(Bugenv_spring, is.character)] <- lapply(Bugenv_spring[sapply(Bugenv_spring, is.character)],as.factor) 
+
+Bugenv_Fall[sapply(Bugenv_Fall, is.character)] <- lapply(Bugenv_Fall[sapply(Bugenv_Fall, is.character)],as.factor)
+
+
+```
+
+
+
+```{r remove rare taxa, echo=FALSE, message= FALSE}
+
+#Emma's function to remove rare taxa
+
+removeRareTaxa <- function(benthics, # wide tibble of taxa count by station
+                           threshold, # numeric 
+                           groupingFields # vector of all non taxa fields
+){
+
+  taxaMath <- benthics %>% 
+    dplyr::select(-c( !!groupingFields) ) %>% 
+    pivot_longer(cols = everything(), names_to = 'Taxa', values_to = 'Count') %>% 
+    filter(!is.na(Count)) %>% 
+    mutate(Count = ifelse(Count > 0, 1, 0)) %>% 
+    group_by(Taxa) %>% 
+    summarise(Count = sum(Count)) %>% 
+    mutate(Percent = Count / nrow(benthics) * 100)
+  # Separate these for easy reporting to user
+  taxaToKeep <- filter(taxaMath, Percent >= !! threshold) 
+  taxaToDrop <- filter(taxaMath, Percent < !! threshold) 
+  
+  benthicsSlim <- benthics %>% 
+    group_by_at( groupingFields) %>% 
+    pivot_longer(cols = -groupingFields, names_to = 'Taxa', values_to = 'Count') %>% 
+    filter(Taxa %in% taxaToKeep$Taxa) %>% 
+    replace(is.na(.), 0) %>% 
+    mutate(Count = log1p(Count)) %>% 
+    pivot_wider(names_from = Taxa, values_from = Count)
+    
+  return(
+    list(`Taxa Math` = taxaMath,
+         `Taxa Kept` = taxaToKeep,
+         `Taxa Dropped` = taxaToDrop,
+         `Benthics Slim` = benthicsSlim) )
+}
+
+dataList_Spring <- removeRareTaxa(Springbugs2, # dataset to analyze, can filter on whatever you want beforehand (e.g. ref, stress, play with ecoregions)
+                           threshold = 5, # drop taxa below 5% occurrence in dataset 
+                           groupingFields = c( "StationID", "BenSampID.x" , "Collection DateTime", "RepNum.x", "Collection.Date")) # fields that you don't want thrown into the math
+# how to view data that comes out of function
+
+dataList_Fall <- removeRareTaxa(Fallbugs2, # dataset to analyze, can filter on whatever you want beforehand (e.g. ref, stress, play with ecoregions)
+                           threshold = 5, # drop taxa below 5% occurrence in dataset 
+                           groupingFields = c( "StationID", "BenSampID.x" , "Collection DateTime", "RepNum.x", "Collection.Date")) # fields that you don't want thrown into the math
+# how to view data that comes out of function
+
+# how to view data that comes out of function
+#View(dataList$`Taxa Math`) # taxa occurrence and percent breakdown
+#View(dataList$`Taxa Kept`) # taxa higher or equal to input threshold
+#View(dataList$`Taxa Dropped`) # taxa lower than threshold, dropped from further analyses
+#View(dataList$`Benthics Slim`) # Taxa below threshold removed, individual counts logged
+
+
+SpringNMDSFive<-dataList_Spring$`Benthics Slim`
+FallNMDSFive<-dataList_Fall$`Benthics Slim`
+
+```
+
+
+
+```{r pressure, echo=FALSE, message = FALSE}
+
+#Removed and log transformed above! 
+
+#bugs[is.na(bugs)]<-0
+
+
+bugsnms_Spring<-SpringNMDSFive%>%
+  select("StationID", 6:100)
+
+bugsnms_Fall<-FallNMDSFive%>%
+  select("StationID", 6:107)
+
+#already logged in JRH data
+###buglog<-log1p(bugsnms[,2:112])
+
+
+bugsnms_Spring$site<-1:nrow(bugsnms_Spring)
+
+bugsnms_Fall$site<-1:nrow(bugsnms_Fall) 
+###bugsnms$site<-1:nrow(bugsnms)
+
+
+Site_spring<-bugsnms_Spring%>%
+ select("StationID","site")
+BugNMS_spring<- left_join(bugsnms_Spring,Site_spring)%>%
+  select(-c("site"))
+
+Site_fall<-bugsnms_Fall%>%
+ select("StationID","site")
+BugNMS_Fall<- left_join(bugsnms_Fall,Site_fall)%>%
+  select(-c("site"))
+
+
+```
+
+
+
+<font size="4"> The first step was to read in the reference site bug taxa list and environmental factors dataset for each station. Join the environmental dataset with the bug dataset to account for multiple observations of each station and collection date and time. 
+
+Check to make sure the bug and environmental join was successful: 
+
+Number of rows in Spring Community Matrix: `r format(nrow(SpringNMDSFive))`
+
+Number or rows in Spring Environmental Matrix: `r format(nrow(Bugenv_spring))`
+
+Number of rows in Fall Community Matrix: `r format(nrow(FallNMDSFive))`
+
+Number or rows in Fall Environmental Matrix: `r format(nrow(Bugenv_Fall))`
+
+The data was log10+1 transformed. Rare (<=5%) taxa were removed. </font>
+
+
+
+
+
+## Run NMDS for Spring reference communities
+
+
+```{r bugnms, echo=FALSE}
+NMDSbug_spring <-metaMDS (SpringNMDSFive[,6:100],k=3, trymax=1000)
+
+
+#Best run spring is 0.0012
+NMDSbug_spring
+
+
+#Stressplot fo NMDS
+stressplot(NMDSbug_spring)
+
+
+plot(NMDSbug_spring, "sites")
+
+
+
+samplescores_Spring<-as.data.frame(scores(NMDSbug_spring))
+
+samplescores_Spring$StationID<-Site_spring$StationID
+
+samplescores_Spring$Collection.Date<- Site_spring$Collection.Date
+
+samplescoresenv_Spring<-left_join(samplescores_Spring, Bugenv_spring, by=c("StationID", "Collection.Date"))
+
+
+env_continuous_spring<-samplescoresenv_Spring%>%
+  select("StationID", "Year", "JulianDate", "Latitude", "Longitude", "totalArea_sqMile", "ELEVMEAN", "SLPMEAN", "wshdRain_mmyr", "siteRain_mmyr")
+
+
+
+#Hmm can't get this to work... 
+bug.sp.fit.spring <- envfit(NMDSbug_spring, env_continuous_spring[ , 2:9], permutations = 99, na.rm=TRUE) 
+bug.sp.fit.spring$vectors
+coord_cont.spring = as.data.frame(scores(bug.sp.fit.spring, "vectors")) * ordiArrowMul(bug.sp.fit.spring)
+vectors.spring<-coord_cont.spring[-c(5,6), ]
+
+
+```
+
+## NMDS for Fall communities
+```{r Fall NMDS, echo=FALSE, fig.width=12, fig.height=8}
+
+NMDSbug_fall<-metaMDS (FallNMDSFive[,6:107],k=3, trymax=1000)
+
+#Best run Fall is 0.164
+NMDSbug_fall
+
+stressplot(NMDSbug_fall)
+
+plot(NMDSbug_fall, "sites")
+
+samplescores_Fall<-as.data.frame(scores(NMDSbug_fall))
+samplescores_Fall$Collection.Date<- Site_fall$Collection.Date
+samplescores_Fall$StationID<-Site_fall$StationID
+
+samplescoresenv_Fall<-left_join(samplescores_Fall, Bugenv_Fall, by=c("StationID", "Collection.Date"))
+env_continuous_fall<-samplescoresenv_Spring%>%
+  select("StationID", "Year", "JulianDate", "Latitude", "Longitude", "totalArea_sqMile", "ELEVMEAN", "SLPMEAN", "wshdRain_mmyr", "siteRain_mmyr")
+
+
+#bug.sp.fit.fall <- envfit(NMDSbug_fall, env_continuous_fall[ , 2:9], permutations = 99, na.rm=TRUE) 
+# 
+# bug.sp.fit.fall$vectors
+# coord_cont.fall = as.data.frame(scores(bug.sp.fit.fall, "vectors")) * ordiArrowMul(bug.sp.fit.fall)
+# vectors.fall<-coord_cont.fall[-c(5,6), ]
+
+
+```
+
+
+
+# Spring plot with Station IDs
+
+
+```{r spring plot with stations, echo=FALSE, fig.width=12, fig.height=8}
+
+
+species.scores <- as.data.frame(scores(NMDSbug_spring, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+species.scores$species <- rownames(species.scores)
+
+ggplot()+
+  geom_text(data=samplescores_Spring,aes(x=NMDS1,y=NMDS2,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores_Spring,aes(x=NMDS1,y=NMDS2),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+
+
+
+```
+
+
+
+
+# Plot with Axis 3- Spring 
+
+
+```{r spring plot with axes 3, echo=FALSE, fig.width=12, fig.height=8}
+
+ggplot()+
+  geom_text(data=samplescores_Spring,aes(x=NMDS1,y=NMDS3,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores_Spring,aes(x=NMDS1,y=NMDS3),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+ggplot()+
+  geom_text(data=samplescores_Fall,aes(x=NMDS2,y=NMDS3,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores_Fall,aes(x=NMDS2,y=NMDS3),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+```
+
+
+
+
+# Fall plot with Station IDs
+```{r fall plot with stations, echo=FALSE, fig.width=12, fig.height=8}
+
+
+
+species.scores.fall <- as.data.frame(scores(NMDSbug_fall, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+species.scores.fall$species <- rownames(species.scores.fall)
+
+ggplot()+
+  geom_text(data=samplescores_Fall,aes(x=NMDS1,y=NMDS2,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores_Fall,aes(x=NMDS1,y=NMDS2),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+
+
+```
+
+
+# Plot with Axis 3- Fall
+
+
+
+```{r fall plot with axes 3, echo=FALSE, fig.width=12, fig.height=8}
+
+ggplot()+
+  geom_text(data=samplescores_Fall,aes(x=NMDS1,y=NMDS3,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores_Fall,aes(x=NMDS1,y=NMDS3),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+ggplot()+
+  geom_text(data=samplescores_Fall,aes(x=NMDS2,y=NMDS3,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores_Fall,aes(x=NMDS2,y=NMDS3),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+```
+
+
+## Plot with Species-Spring
+
+
+```{r Spring plot with species, echo=FALSE, fig.width=12, fig.height=8}
+
+
+#plot (all) with species
+plot(NMDSbug_spring, type = "n")
+points(NMDSbug_spring, display = "sites", cex = 0.8, pch=21, col="red", bg="yellow")
+text(NMDSbug_spring, display = "spec", cex=0.7, col="blue")
+
+
+#samplescores<-as.data.frame(scores(NMDSbug))
+#samplescores$site<-Site$StationID
+
+#species.scores <- as.data.frame(scores(NMDSbug, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+#species.scores$species <- rownames(species.scores)
+
+#ggplot()+
+#  geom_text(data=samplescores,aes(x=NMDS1,y=NMDS2,label=site),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+#  geom_point(data=samplescores,aes(x=NMDS1,y=NMDS2),size=3)+
+#  theme_bw() + 
+#  theme(axis.text.x = element_blank(),  # remove x-axis text
+#        axis.text.y = element_blank(), # remove y-axis text
+#        axis.ticks = element_blank(),  # remove axis ticks
+#        axis.title.x = element_text(size=18), # remove x-axis labels
+#        axis.title.y = element_text(size=18), # remove y-axis labels
+#        panel.background = element_blank(), 
+#        panel.grid.major = element_blank(),  #remove major-grid labels
+#        panel.grid.minor = element_blank(),  #remove minor-grid labels
+#        plot.background = element_blank())
+
+
+
+
+```
+
+
+## Fall plot with species
+
+```{r fall plot with species, echo=FALSE, fig.width=12, fig.height=8}
+
+
+#plot (all) with species
+plot(NMDSbug_fall, type = "n")
+points(NMDSbug_fall, display = "sites", cex = 0.8, pch=21, col="red", bg="yellow")
+text(NMDSbug_fall, display = "spec", cex=0.7, col="blue")
+
+
+#samplescores<-as.data.frame(scores(NMDSbug))
+#samplescores$site<-Site$StationID
+
+#species.scores <- as.data.frame(scores(NMDSbug, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+#species.scores$species <- rownames(species.scores)
+
+#ggplot()+
+#  geom_text(data=samplescores,aes(x=NMDS1,y=NMDS2,label=site),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+#  geom_point(data=samplescores,aes(x=NMDS1,y=NMDS2),size=3)+
+#  theme_bw() + 
+#  theme(axis.text.x = element_blank(),  # remove x-axis text
+#        axis.text.y = element_blank(), # remove y-axis text
+#        axis.ticks = element_blank(),  # remove axis ticks
+#        axis.title.x = element_text(size=18), # remove x-axis labels
+#        axis.title.y = element_text(size=18), # remove y-axis labels
+#        panel.background = element_blank(), 
+#        panel.grid.major = element_blank(),  #remove major-grid labels
+#        panel.grid.minor = element_blank(),  #remove minor-grid labels
+#        plot.background = element_blank())
+
+
+
+
+```
+
+
+
+## Ecoregion- Spring
+
+```{r spring plot Ecoregion, echo=FALSE, fig.width=12, fig.height=8}
+
+#Ecoregion
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred","darkorchid2", "coral", "dark orange")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")+
+  ggtitle("Spring Ecoregion")
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred",  "darkorchid2", "coral", "dark orange")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")+
+  ggtitle("Spring Ecoregion")
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred",  "darkorchid2", "coral", "dark orange")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")+
+  ggtitle("Spring Ecoregion")
+
+
+Ecoregion.mrpp.Spring<- mrpp(bugsnms_Spring[,6:100], group= samplescoresenv_Spring$US_L3NAME, distance="bray")
+
+Ecoregion.mrpp.Spring
+
+
+```
+
+## Ecoregion-Fall
+
+```{r fall plot Ecoregion, echo=FALSE, fig.width=12, fig.height=8}
+
+#Ecoregion
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred",  "darkorchid2", "coral", "dark orange")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")+
+  ggtitle("Fall Ecoregion")
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred",  "darkorchid2", "coral", "dark orange")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")+
+  ggtitle("Fall Ecoregion")
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred",  "darkorchid2", "coral", "dark orange")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")+
+  ggtitle("Fall Ecoregion")
+
+Ecoregion.mrpp.Fall<- mrpp(bugsnms_Fall[,6:107], group= samplescoresenv_Fall$US_L3NAME, distance="bray")
+
+Ecoregion.mrpp.Fall
+
+```
+
+
+##Bioregion-Spring
+
+```{r plot Spring bioregion noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) + 
+   geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors.spring, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors.spring, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors.spring)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")+
+  ggtitle("Spring Bioregion")
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) +
+   geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors.spring, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors.spring, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors.spring)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.18", size=4)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")+
+  ggtitle("Spring Bioregion")
+
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) + 
+   geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors.spring, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors.spring, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors.spring)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")+
+  ggtitle("Spring Bioregion")
+
+bioregion.mrpp.Spring<- mrpp(bugsnms_Spring[,6:100], group= samplescoresenv_Spring$Bioregion, distance="bray")
+
+bioregion.mrpp.Spring
+
+
+```
+
+## Bioregion- Fall
+
+```{r plot Fall bioregion noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) + 
+   # geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+   #     data = vectors.fall, size =1, alpha = 0.5, colour = "grey30") +
+   #   geom_text(data = vectors.fall, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+   #     fontface = "bold", label = row.names(vectors.fall)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")+
+  ggtitle("Fall Bioregion")
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) +
+   # geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+   #     data = vectors.fall, size =1, alpha = 0.5, colour = "grey30") +
+   #   geom_text(data = vectors.fall, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+   #     fontface = "bold", label = row.names(vectors.fall)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")+
+  ggtitle("Fall Bioregion")
+
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) + 
+   # geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+   #     data = vectors.fall, size =1, alpha = 0.5, colour = "grey30") +
+   #   geom_text(data = vectors.fall, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+   #     fontface = "bold", label = row.names(vectors.fall)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")+
+  ggtitle("Fall Bioregion")
+
+bioregion.mrpp.Fall<- mrpp(bugsnms_Fall[,6:107], group= samplescoresenv_Fall$Bioregion, distance="bray")
+
+bioregion.mrpp.Fall
+
+
+```
+
+
+
+## Stream Order- Spring
+
+```{r plot Spring Stream order, echo=FALSE, fig.width=12, fig.height=8}
+
+#Stream order
+samplescoresenv_Spring$Order<-as.character(samplescoresenv_Spring$Order)
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) +
+   geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors.spring, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors.spring, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors.spring)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")+
+  ggtitle("Spring Stream Order")
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+   geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors.spring, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors.spring, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors.spring)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.18", size=4)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")+
+  ggtitle("Spring Stream Order")
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+   geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors.spring, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors.spring, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors.spring)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")+
+  ggtitle("Spring Stream Order")
+
+
+
+Stream.mrpp.spring<-mrpp(bugsnms_Spring[,6:100], group=samplescoresenv_Spring$Order, distance="bray" )
+
+Stream.mrpp.spring
+
+```
+
+
+## Stream Order- Fall 
+
+```{r plot fall Stream order, echo=FALSE, fig.width=12, fig.height=8}
+
+#Stream order
+samplescoresenv_Fall$Order<-as.character(samplescoresenv_Fall$Order)
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) +
+   # geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+   #     data = vectors.fall, size =1, alpha = 0.5, colour = "grey30") +
+   #   geom_text(data = vectors.fall, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+   #     fontface = "bold", label = row.names(vectors.fall)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")+
+  ggtitle("Fall Stream Order")
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+   # geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+   #     data = vectors.fall, size =1, alpha = 0.5, colour = "grey30") +
+   #   geom_text(data = vectors.fall, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+   #     fontface = "bold", label = row.names(vectors.fall)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")+
+  ggtitle("Fall Stream Order")
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+   # geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+   #     data = vectors.fall, size =1, alpha = 0.5, colour = "grey30") +
+   #   geom_text(data = vectors.fall, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+   #     fontface = "bold", label = row.names(vectors.fall)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")+
+  ggtitle("Fall Stream Order")
+
+
+
+Stream.mrpp.fall<-mrpp(bugsnms_Fall[,6:107], group=samplescoresenv_Fall$Order, distance="bray" )
+
+Stream.mrpp.fall
+
+```
+
+
+## Stream Order Categories- Spring
+
+```{r plot  Spring Stream order noncoastal category, echo=FALSE, fig.width=12, fig.height=8}
+
+#Stream order
+
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = StreamCate), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+   geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors.spring, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors.spring, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors.spring)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")+
+  ggtitle("Spring Stream Order Category")
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = StreamCate), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+   geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors.spring, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors.spring, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors.spring)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")+
+  ggtitle("Spring Stream Order Category")
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = StreamCate), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+   geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors.spring, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors.spring, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors.spring)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")+
+  ggtitle("Spring Stream Order Category")
+
+
+
+Cate.mrpp.Spring<-mrpp(bugsnms_Spring[,6:100], group=samplescoresenv_Spring$StreamCate, distance="bray" )
+
+Cate.mrpp.Spring
+
+```
+
+
+## Stream Order Categories- Fall
+
+```{r plot  Fall Stream order noncoastal category, echo=FALSE, fig.width=12, fig.height=8}
+
+#Stream order
+
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = StreamCate), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+   # geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+   #     data = vectors.fall, size =1, alpha = 0.5, colour = "grey30") +
+   #   geom_text(data = vectors.fall, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+   #     fontface = "bold", label = row.names(vectors.fall)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")+
+  ggtitle("Fall Stream Order Category")
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = StreamCate), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+   # geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+   #     data = vectors.fall, size =1, alpha = 0.5, colour = "grey30") +
+   #   geom_text(data = vectors.fall, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+   #     fontface = "bold", label = row.names(vectors.fall)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")+
+  ggtitle("Fall Stream Order Category")
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = StreamCate), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+   # geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+   #     data = vectors.fall, size =1, alpha = 0.5, colour = "grey30") +
+   #   geom_text(data = vectors.fall, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+   #     fontface = "bold", label = row.names(vectors.fall)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")+
+  ggtitle("Fall Stream Order Category")
+
+
+
+Cate.mrpp.Fall<-mrpp(bugsnms_Fall[,6:107], group=samplescoresenv_Fall$StreamCate, distance="bray" )
+
+Cate.mrpp.Fall
+
+```
+
+
+## Bioregion and Size- Spring
+
+```{r SpringBioregionSize, echo=FALSE, fig.width=12, fig.height=8 }
+
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = BioregionSize), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2", "chartreuse", "cyan3", "azure", "bisque","white","beige", "deeppink", "blue", "darkmagenta", "cornflowerblue", "darkorange", "coral","aquamarine3", "chocolate" )) +
+  scale_shape_manual(values = 16)+
+ 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream size, Bioregion" )
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = BioregionSize), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2", "chartreuse", "cyan3",  "azure", "bisque","white","beige", "deeppink", "blue", "darkmagenta", "cornflowerblue", "darkorange", "coral","aquamarine3", "chocolate")) +
+  scale_shape_manual(values = c(0, 3, 16))+
+  
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Size, Bioregion")
+
+
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = BioregionSize), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2", "chartreuse", "cyan3",  "azure", "bisque","white","beige", "deeppink", "blue", "darkmagenta", "cornflowerblue", "darkorange", "coral", "aquamarine3", "chocolate")) +
+  scale_shape_manual(values =  16)+
+  
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream, Bioregion, Season")
+
+
+biosizeseason.mrpp.Spring<- mrpp(bugsnms_Spring[,6:100], samplescoresenv_Spring$BioregionSize, distance="bray" )
+
+biosizeseason.mrpp.Spring
+```
+
+## Bioregion and Size- Fall 
+
+```{r fallBioregionSize, echo=FALSE, fig.width=12, fig.height=8 }
+
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = BioregionSize), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2", "chartreuse", "cyan3", "azure", "bisque","white","beige", "deeppink", "blue", "darkmagenta", "cornflowerblue", "darkorange", "coral","aquamarine3", "chocolate" )) +
+  scale_shape_manual(values = 16)+
+ 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream size, Bioregion" )
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = BioregionSize), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2", "chartreuse", "cyan3",  "azure", "bisque","white","beige", "deeppink", "blue", "darkmagenta", "cornflowerblue", "darkorange", "coral","aquamarine3", "chocolate")) +
+  scale_shape_manual(values = c(0, 3, 16))+
+  
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Size, Bioregion")
+
+
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = BioregionSize), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2", "chartreuse", "cyan3",  "azure", "bisque","white","beige", "deeppink", "blue", "darkmagenta", "cornflowerblue", "darkorange", "coral", "aquamarine3", "chocolate")) +
+  scale_shape_manual(values =  16)+
+  
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream, Bioregion, Season")
+
+
+biosizeseason.mrpp.Fall<- mrpp(bugsnms_Fall[,6:107], samplescoresenv_Fall$BioregionSize, distance="bray" )
+
+biosizeseason.mrpp.Fall
+
+
+```
+
+
+## Spring A-statistic table
+```{r Spring Summary table, echo=FALSE, fig.width=12, fig.height=8}
+
+DT<- data.table(
+  Grouping<- c("Ecoregion", "Bioregion",  "Stream Order", "Stream Order Category", "Bioregion, size"), 
+  `A Statistic`<- c(Ecoregion.mrpp.Spring$A, bioregion.mrpp.Spring$A, Stream.mrpp.spring$A, Cate.mrpp.Spring$A, biosizeseason.mrpp.Spring$A )    , 
+  `P-value`<- c( Ecoregion.mrpp.Spring$Pvalue,  bioregion.mrpp.Spring$Pvalue,Stream.mrpp.spring$Pvalue, Cate.mrpp.Spring$Pvalue, biosizeseason.mrpp.Spring$Pvalue )
+)
+
+DT<- format(DT, digits=3)
+
+datatable(DT, class='cell-border stripe', rowname=FALSE, colnames=c("Grouping", "A Statisitc", "p-value"), caption="Table 1: A-statitics for MRPP for group parameters (999 permutations, method= Bray)", filter='top' )
+
+
+```
+
+
+
+## Fall A-statistic table
+```{r Fall Summary table, echo=FALSE, fig.width=12, fig.height=8}
+
+DT<- data.table(
+  Grouping<- c("Ecoregion", "Bioregion",  "Stream Order", "Stream Order Category", "Bioregion, size"), 
+  `A Statistic`<- c(Ecoregion.mrpp.Fall$A, bioregion.mrpp.Fall$A, Stream.mrpp.fall$A, Cate.mrpp.Fall$A, biosizeseason.mrpp.Fall$A)    , 
+  `P-value`<- c( Ecoregion.mrpp.Fall$Pvalue,  bioregion.mrpp.Fall$Pvalue,Stream.mrpp.fall$Pvalue, Cate.mrpp.Fall$Pvalue, biosizeseason.mrpp.Fall$Pvalue  )
+)
+
+DT<- format(DT, digits=3)
+
+datatable(DT, class='cell-border stripe', rowname=FALSE, colnames=c("Grouping", "A Statisitc", "p-value"), caption="Table 1: A-statitics for MRPP for group parameters (999 permutations, method= Bray)", filter='top' )
+
+
+```

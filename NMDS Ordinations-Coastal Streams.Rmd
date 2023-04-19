@@ -1,0 +1,994 @@
+---
+title: "Coastal Ordinations for Virginia Reference Streams"
+output: html_document
+---
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+
+Packages used for NMDS: vegan (version 2.5-7)
+
+```{r setup, include=FALSE}
+
+
+#R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+#Copyright (C) 2020 The R Foundation for Statistical Computing
+#Platform: x86_64-w64-mingw32/x64 (64-bit)
+#knitr::opts_chunk$set(echo = TRUE)
+
+library(vegan)
+library(dplyr)
+library(lubridate)
+library(purrr) 
+library(ggplot2)
+library(readxl)
+library(tidyr)
+library(DT)
+library(data.table)
+
+# Set working directory
+
+setwd('C:/Backup/R/NMDS/NMDS')
+
+```
+## Methods
+
+
+<font size="4"> The document shows a series of NMDS ordinations for reference Coastal benthic communities in Virginia with environmental characteristics overlaid to evaluate natural differences in community compositions across coastal regions in Virginia. These NMDS will support the Genus level IBI development process. No West Virginia DEP data is used in this analysis.Reference sites were evaluated by regional biologists. 
+
+
+The dataset used includes all coastal reference stations collected in Virginia that were deemed reference through a series or water quality parameter filters and regional biologist review. Coastal stations were considered to be located in the Southeastern Plains and MidAtlantic Coastal Plains ecoregion. Communities were deemed to have different biological communities based on ordinations conducted on the entire reference dataset as is demonstrated in the document titled "NMDS for Reference Streams". If stations appeared in the dataset more than 4 times, then the most recent 4 samples were used and the rest removed. Samples that had a total number of taxa below 100 collected at the time of sampling were also removed. Taxa that occurred in the dataset <= 5% of the time were removed. The data was log10 +1 transformed. Environmental factors were compiled for each station and used to plot over the NMDS to show environmental variation associated with the community matrix. The envfit function in Vegan was used to plot the continuous environmental variables. Some environmental variables like precipitation, slope, and elevation have not been calculated for all watersheds yet and will be added at a later date. </font>
+
+
+
+```{r files, echo=FALSE}
+
+###Load Data- don't need to do the environmental dataset unless things change
+bugs <- read_excel('data//benthics_ExcludedTaxaDropped_LBedits.xlsx', sheet='benthics_ExcludedTaxaDropped_LB')
+
+bugs$Collection.Date<-as.Date(bugs$Collection.Date, format="%m/%d/%Y")
+
+env <- read.csv('data//stationsSpatial_withAllData.csv')%>%
+  subset(`X` == "Ref")
+
+env$`Collection.Date`<-as.Date(env$`Collection.Date`, format="%m/%d/%Y")
+
+
+
+# 
+#  bioregion <- function(x) { 
+#  if(x == 67 | x == 69 | x== 66) y <- "Mountain"
+#  if(x  == 63 | x == 65 ) y <- "Coast"
+#  if(x == 64 | x== 45) y <- "Piedmont"
+#  return(y)
+#  }
+# # 
+#  streamcategory<- function(x) { 
+#  if(x == 1 | x == 2 ) y <- "Small"
+#  if(x  == 3) y <- "Medium"
+#  if(x == 4 | x== 5 | x== 6) y <- "Large"
+#  return(y)
+#  }
+# # 
+#  env$StreamCate<-sapply(env$Order, streamcategory)
+# # 
+#  env$Bioregion<-sapply(env$US_L3CODE, bioregion)
+# 
+ Env_coast<-env%>%
+     subset(`US_L3NAME`=="Middle Atlantic Coastal Plain" | `US_L3NAME`==  "Southeastern Plains")
+ 
+
+   
+Refbugs <-left_join(bugs,env, by=c("StationID", "Collection.Date"))%>%
+  subset(`X`=="Ref")%>%
+  subset(Season != "Outside Sample Window")
+
+
+coastal <-Refbugs%>%
+  subset(`US_L3NAME` == "Middle Atlantic Coastal Plain"| `US_L3NAME`=="Southeastern Plains")
+
+
+coastal<-unique(coastal[ , 1:412])
+
+#refbugs_noncoast<-write.csv(Env_coast, "data\\Referenceenv_coast.csv", row.names=FALSE)
+
+
+
+##opened saved spreadsheet and concatenated season, bioregion, and stream size results
+#Pulled this dataset in for review 
+
+
+
+Env_coast_2<-read.csv("data//Referenceenv_coast.csv")%>%
+  subset(Season != "Outside Sample Window")
+
+Env_coast_2$`Collection.Date`<-as.Date(Env_coast_2$`Collection.Date`, format="%m/%d/%Y")
+
+##Figure out how to join - removed collection date for now- LS had to remove bioregion
+
+Bugenv<-left_join(Env_coast_2, coastal, by=c("StationID", "Collection.Date"))%>%
+  select("StationID", "Year", "JulianDate", "Latitude", "Longitude", "Collection.Date", "Season" , "Gradient", "Coastal", "US_L3CODE", "US_L3NAME", "US_L4NAME", "ASSESS_REG", "Tidal", "VAHUSB", "Basin", "Basin_Code", "CountyCityName", "WQS_CLASS", "WQS_SPSTDS", "WQS_PWS", "WQS_TROUT", "WQS_TIER_III", "Order","EDASOrder", "totalArea_sqMile", "ELEVMEAN", "SLPMEAN", "wshdRain_mmyr", "siteRain_mmyr", "Bioregion", "StreamCate", "Bioregionsize", "BioregionSeason" )
+#  unique()
+
+
+#Bugenv[sapply(Bugenv, is.character)] <- lapply(Bugenv[sapply(Bugenv, is.character)],as.factor) 
+
+
+```
+
+```{r remove rare taxa, echo=FALSE, message= FALSE}
+
+#Emma's function to remove rare taxa
+
+removeRareTaxa <- function(benthics, # wide tibble of taxa count by station
+                           threshold, # numeric 
+                           groupingFields # vector of all non taxa fields
+){
+
+  taxaMath <- benthics %>% 
+    dplyr::select(-c( !!groupingFields) ) %>% 
+    pivot_longer(cols = everything(), names_to = 'Taxa', values_to = 'Count') %>% 
+    filter(!is.na(Count)) %>% 
+    mutate(Count = ifelse(Count > 0, 1, 0)) %>% 
+    group_by(Taxa) %>% 
+    summarise(Count = sum(Count)) %>% 
+    mutate(Percent = Count / nrow(benthics) * 100)
+  # Separate these for easy reporting to user
+  taxaToKeep <- filter(taxaMath, Percent >= !! threshold) 
+  taxaToDrop <- filter(taxaMath, Percent < !! threshold) 
+  
+  benthicsSlim <- benthics %>% 
+    group_by_at( groupingFields) %>% 
+    pivot_longer(cols = -groupingFields, names_to = 'Taxa', values_to = 'Count') %>% 
+    filter(Taxa %in% taxaToKeep$Taxa) %>% 
+    replace(is.na(.), 0) %>% 
+    mutate(Count = log1p(Count)) %>% 
+    pivot_wider(names_from = Taxa, values_from = Count)
+    
+  return(
+    list(`Taxa Math` = taxaMath,
+         `Taxa Kept` = taxaToKeep,
+         `Taxa Dropped` = taxaToDrop,
+         `Benthics Slim` = benthicsSlim) )
+}
+
+
+
+
+datList_coast<-removeRareTaxa(coastal, # dataset to analyze, can filter on whatever you want beforehand (e.g. ref, stress, play with ecoregions)
+                           threshold = 5, # drop taxa below 5% occurrence in dataset 
+                           groupingFields = c( "StationID", "BenSampID.x" , "Collection DateTime", "RepNum.x", "Collection.Date")) # fields that you don't want thrown into the math
+# how to view data that comes out of function
+
+# how to view data that comes out of function
+#View(dataList$`Taxa Math`) # taxa occurrence and percent breakdown
+#View(dataList$`Taxa Kept`) # taxa higher or equal to input threshold
+#View(dataList$`Taxa Dropped`) # taxa lower than threshold, dropped from further analyses
+#View(dataList$`Benthics Slim`) # Taxa below threshold removed, individual counts logged
+
+
+coastalFive<-datList_coast$`Benthics Slim`
+
+
+```
+
+
+
+```{r NMS, echo=FALSE, message = FALSE}
+
+
+bugsnms_coast<-coastalFive%>%
+  select("StationID", "Collection.Date", 6:104)
+
+
+bugsnms_coast$site<-1:nrow(bugsnms_coast)
+
+
+Site_coast<-bugsnms_coast%>%
+ select("StationID","site","Collection.Date")
+BugNMS_coast<- left_join(bugsnms_coast,Site_coast)%>%
+  select(-c("site"))
+
+
+```
+
+
+
+<font size="4"> The first step was to read in the reference site bug taxa list and environmental factors dataset for each station. Join the environmental dataset with the bug dataset to account for multiple observations of each station and collection date and time. 
+
+Check to make sure the bug and environmental join was successful: 
+
+Number of rows in Community Matrix: `r format(nrow(Refbugs))`
+
+Number or rows in Environmental Matrix: `r format(nrow(Bugenv))`
+
+The data was log10+1 transformed. Rare taxa (<=5%) were removed. </font>
+
+
+## NMDS Results for Coastal Streams
+
+```{r bugnms noncoastal, echo=FALSE}
+
+NMDSbug_coast <-metaMDS (coastalFive[,6:104],k=3, trymax=1000)
+
+#Best run is 0.19
+NMDSbug_coast
+
+#Stressplot fo NMDS
+stressplot(NMDSbug_coast)
+
+
+#orditorp(NMDSbug,display="sites",cex=1.25,air=0.01)
+plot(NMDSbug_coast, "sites")
+
+samplescores_coast<-as.data.frame(scores(NMDSbug_coast))
+samplescores_coast$StationID<-Site_coast$StationID
+samplescores_coast$Collection.Date<- Site_coast$Collection.Date
+samplescoresenv_coast<-left_join(samplescores_coast, Bugenv, by=c("StationID", "Collection.Date"))
+
+env_continuous<-samplescoresenv_coast%>%
+  select("StationID", "Year", "JulianDate", "Latitude", "Longitude", "totalArea_sqMile", "ELEVMEAN", "SLPMEAN", "wshdRain_mmyr", "siteRain_mmyr")
+
+
+
+
+bug.sp.fit <- envfit(NMDSbug_coast, env_continuous[ , 2:9], permutations = 99, na.rm=TRUE) 
+bug.sp.fit$vectors
+
+coord_cont = as.data.frame(scores(bug.sp.fit, "vectors")) * ordiArrowMul(bug.sp.fit)
+vectors<-coord_cont[-c(5,6), ]
+
+
+
+
+```
+
+## Plot with Stations: Coastal
+
+```{r plot with stations noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+
+species.scores_coast <- as.data.frame(scores(NMDSbug_coast, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+species.scores_coast$species <- rownames(species.scores_coast)
+
+ggplot()+
+  geom_text(data=samplescores_coast,aes(x=NMDS1,y=NMDS2,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores_coast,aes(x=NMDS1,y=NMDS2),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+ggplot()+
+  geom_text(data=samplescores_coast,aes(x=NMDS2,y=NMDS3,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores_coast,aes(x=NMDS2,y=NMDS3),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+
+ggplot()+
+  geom_text(data=samplescores_coast,aes(x=NMDS1,y=NMDS3,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores_coast,aes(x=NMDS1,y=NMDS3),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+
+```
+
+
+## Season: Coastal
+
+```{r plot Season noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour =Season), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Season")
+
+
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour =Season), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Season")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour =Season), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Season")
+
+
+Season.mrpp.coastal<- mrpp(bugsnms_coast[,6:104], group=samplescoresenv_coast$Season, distance="bray")
+
+Season.mrpp.coastal
+
+```
+
+
+
+
+## Ecoregion: Coastal
+
+```{r plot Ecoregion noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+#Ecoregion
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")
+
+
+
+Ecoregion.mrpp.coast<- mrpp(bugsnms_coast[,6:104], group= samplescoresenv_coast$US_L3NAME, distance="bray")
+
+Ecoregion.mrpp.coast
+
+```
+
+
+## Basin: Coastal 
+
+```{r plot Basin noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+# Basin
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Basin_Code ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral", "cadetblue", "chartreuse", "cornflowerblue", "cornsilk4", "darkgrey", "darkorange2", "darkslateblue", "burlywood4", "darkgreen")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Basin")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Basin_Code ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral", "cadetblue", "chartreuse", "cornflowerblue", "cornsilk4", "darkgrey", "darkorange2", "darkslateblue", "burlywood4", "darkgreen")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Basin")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Basin_Code ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral", "cadetblue", "chartreuse", "cornflowerblue", "cornsilk4", "darkgrey", "darkorange2", "darkslateblue", "burlywood4", "darkgreen")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Basin")
+
+
+Basin.mrpp.coast<- mrpp(bugsnms_coast[,6:104], group=samplescoresenv_coast$Basin_Code, distance="bray" )
+
+Basin.mrpp.coast
+
+```
+
+
+## Admin Region: Coastal
+
+```{r plot Region noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+#Admin-region
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = ASSESS_REG ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+    annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "DEQ Regional Office")
+
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = ASSESS_REG ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+    annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "DEQ Regional Office")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = ASSESS_REG ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+    annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "DEQ Regional Office")
+
+
+
+
+
+admin.mrpp.coast<- mrpp(bugsnms_coast[,6:104], group=samplescoresenv_coast$ASSESS_REG, distance="bray" )
+
+admin.mrpp.coast
+
+```
+
+
+
+##Bioregion: Coastal
+
+```{r plot bioregion noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")
+
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")
+
+
+bioregion.mrpp.coast<- mrpp(bugsnms_coast[,6:104], group=samplescoresenv_coast$Bioregion, distance="bray" )
+
+bioregion.mrpp.coast
+
+
+```
+
+
+## Sample Method: Coastal
+```{r plot Sample Method coastal, echo=FALSE, fig.width=12, fig.height=8}
+
+#Method
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Gradient ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+    annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Sample Method")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Gradient ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+    annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Sample Method")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Gradient ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink")) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+    annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Sample Method")
+
+
+
+Sample.mrpp.coast<-mrpp(bugsnms_coast[,6:104], group=samplescoresenv_coast$Gradient, distance="bray" )
+
+Sample.mrpp.coast
+
+```
+
+
+## Stream Order: Coastal
+
+```{r plot Stream order coastal, echo=FALSE, fig.width=12, fig.height=8}
+
+#Stream order
+samplescoresenv_coast$Order<-as.character(samplescoresenv_coast$Order)
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")
+
+
+
+Stream.mrpp.coast<-mrpp(bugsnms_coast[,6:104], group=samplescoresenv_coast$Order, distance="bray" )
+
+Stream.mrpp.coast
+
+```
+
+## Stream Order Categories: coastal
+
+```{r plot Stream order noncoastal category, echo=FALSE, fig.width=12, fig.height=8}
+
+#Stream order
+
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = StreamCate), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = StreamCate), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = StreamCate), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")
+
+
+
+Cate.mrpp.coast<-mrpp(bugsnms_coast[,6:104], group=samplescoresenv_coast$StreamCate, distance="bray" )
+
+Cate.mrpp.coast
+
+```
+
+
+## Water Quality Standard Class: Coastal
+
+```{r plot Water quality Standard coastal, echo=FALSE, fig.width=12, fig.height=8}
+
+#Water Quality Standard Class
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = WQS_CLASS), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Water Quality Standard")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = WQS_CLASS), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Water Quality Standard")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = WQS_CLASS), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Water Quality Standard")
+
+
+
+
+Standard.mrpp.coast<- mrpp(bugsnms_coast[,6:104], samplescoresenv_coast$WQS_CLASS, distance="bray" )
+
+Standard.mrpp.coast
+
+```
+
+
+## Natural Trout Water WQS: Coastal- No trout streams
+
+
+
+## Bioregion and Season
+
+```{r plot bioregion and season noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = BioregionSeason), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2", "chartreuse", "cyan3",  "chocolate", "deeppink", "blue", "darkmagenta", "cornflowerblue", "darkorange", "coral")) +
+  scale_shape_manual(values = 16)+
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion and Season")
+
+
+
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = BioregionSeason), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2", "chartreuse", "cyan3",  "chocolate", "deeppink", "blue", "darkmagenta", "cornflowerblue", "darkorange", "coral")) +
+  scale_shape_manual(values = 16)+
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion and Season")
+
+
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = BioregionSeason), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2", "chartreuse", "cyan3",  "chocolate", "deeppink", "blue", "darkmagenta", "cornflowerblue", "darkorange", "coral")) +
+  scale_shape_manual(values = 16)+
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion and Season")
+
+
+
+basinseason.mrpp.coast<- mrpp(bugsnms_coast[,6:104], samplescoresenv_coast$BioregionSeason, distance="bray" )
+
+basinseason.mrpp.coast
+
+```
+
+
+
+## Bioregion, Stream Size and Season: coastal
+
+```{r plot bioregion and season and stream size noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Bioregionsize), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2", "chartreuse", "cyan3", "aquamarine3", "chocolate", "azure", "bisque","white","beige", "deeppink", "blue", "darkmagenta", "cornflowerblue", "darkorange", "coral")) +
+  scale_shape_manual(values = 16)+
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream size, Bioregion, Season")
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Bioregionsize), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2", "chartreuse", "cyan3", "aquamarine3", "chocolate", "azure", "bisque","white","beige", "deeppink", "blue", "darkmagenta", "cornflowerblue", "darkorange", "coral")) +
+  scale_shape_manual(values = c(0, 3, 16))+
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Size, Bioregion, Season")
+
+
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = Bioregionsize), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2", "chartreuse", "cyan3", "aquamarine3", "chocolate", "azure", "bisque","white","beige", "deeppink", "blue", "darkmagenta", "cornflowerblue", "darkorange", "coral")) +
+  scale_shape_manual(values =  16)+
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream, Bioregion, Season")
+
+
+biosizeseason.mrpp.coast<- mrpp(bugsnms_coast[,6:104], samplescoresenv_coast$Bioregionsize, distance="bray" )
+
+biosizeseason.mrpp.coast
+
+
+```
+
+
+
+```{r Summary table, echo=FALSE, fig.width=12, fig.height=8}
+
+DT<- data.table(
+  Grouping<- c("Season", "Ecoregion", "Basin", "Admin Region", "Bioregion", "Sample Method", "Stream Order", "Stream Order Category", "Water Quality Standards", "Trout", "Bioregion and season", "Bioregion, Size, season"), 
+  `A Statistic`<- c(Season.mrpp.coastal$A, Ecoregion.mrpp.coast$A, Basin.mrpp.coast$A, admin.mrpp.coast$A, bioregion.mrpp.coast$A,Sample.mrpp.coast$A, Stream.mrpp.coast$A, Cate.mrpp.coast$A, Standard.mrpp.coast$A, "NA" ,basinseason.mrpp.coast$A, biosizeseason.mrpp.coast$A  )    , 
+  `P-value`<- c(Season.mrpp.coastal$Pvalue, Ecoregion.mrpp.coast$Pvalue, Basin.mrpp.coast$Pvalue, admin.mrpp.coast$Pvalue, bioregion.mrpp.coast$Pvalue, Sample.mrpp.coast$Pvalue, Stream.mrpp.coast$Pvalue, Cate.mrpp.coast$Pvalue, Standard.mrpp.coast$Pvalue, "NA", basinseason.mrpp.coast$Pvalue, biosizeseason.mrpp.coast$Pvalue  )
+)
+
+DT<- format(DT, digits=3)
+
+datatable(DT, class='cell-border stripe', rowname=FALSE, colnames=c("Grouping", "A Statisitc", "p-value"), caption="Table 1: A-statitics for MRPP for group parameters (999 permutations, method= Bray)", filter='top' )
+
+
+```
+
+

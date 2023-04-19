@@ -1,0 +1,17 @@
+---
+title: "header"
+author: "Lucy Baker"
+date: "February 28, 2019"
+output: html_document
+---
+
+\usepackage{titling}
+
+\pretitle{%
+  \begin{center}
+  \LARGE
+  \includegraphics[width=4cm,height=6cm]{Logo.png}\\[\bigskipamount]
+}
+\posttitle{\end{center}}
+
+

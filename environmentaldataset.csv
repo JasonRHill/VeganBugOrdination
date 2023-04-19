@@ -1,0 +1,52 @@
+"","StationID","Latitude","Longitude","WQM_STA_STRAHER_ORDER","EPA_ECO_US_L3CODE","EPA_ECO_US_L3NAME","BASINS_HUC_8_NAME","BASINS_VAHU6","WQS_SEC","WQS_CLASS","WQS_SPSTDS","WQS_TROUT","WQS_TIER_III","Admin_Region","Sta_Huc_Code","Sta_Huc_Sbc_Bsc_Code","Sta_Huc_Sbc_Code","Sta_Wqm_Wat_Shed_Code","Collection.Date","Season","BioRegion","Gradient","JulianDate"
+"1","4ABLG001.95",37.1527,-80.176,2,66,"Blue Ridge","Upper Roanoke","RU02","7","VI","pH","Yes","No","WCRO",3010101,4,"A","L01",2014-04-03,"Spring","Mountain","Riffle",93
+"3","4ABLG001.95",37.1527,-80.176,2,66,"Blue Ridge","Upper Roanoke","RU02","7","VI","pH","Yes","No","WCRO",3010101,4,"A","L01",2014-10-06,"Fall","Mountain","Riffle",279
+"5","4ABTM000.04",37.1017,-80.2194,3,66,"Blue Ridge","Upper Roanoke","RU02","7","VI","pH","Yes","No","WCRO",3010101,4,"A","L01",2000-10-12,"Fall","Mountain","Riffle",286
+"13","4ABTM000.04",37.1017,-80.2194,3,66,"Blue Ridge","Upper Roanoke","RU02","7","VI","pH","Yes","No","WCRO",3010101,4,"A","L01",2002-06-04,"Spring","Mountain","Riffle",155
+"21","4ABTM000.04",37.1017,-80.2194,3,66,"Blue Ridge","Upper Roanoke","RU02","7","VI","pH","Yes","No","WCRO",3010101,4,"A","L01",2015-05-05,"Spring","Mountain","Riffle",125
+"29","4ABTM000.04",37.1017,-80.2194,3,66,"Blue Ridge","Upper Roanoke","RU02","7","VI","pH","Yes","No","WCRO",3010101,4,"A","L01",2015-11-23,"Fall","Mountain","Riffle",327
+"37","4ABTM004.48",37.1315,-80.18030556,3,66,"Blue Ridge","Upper Roanoke","RU02","7","VI","pH","Yes","No","WCRO",3010101,4,"A","L01",2008-09-12,"Fall","Mountain","Riffle",256
+"45","4ABTM004.48",37.1315,-80.18030556,3,66,"Blue Ridge","Upper Roanoke","RU02","7","VI","pH","Yes","No","WCRO",3010101,4,"A","L01",2015-05-04,"Spring","Mountain","Riffle",124
+"53","4ABTM004.48",37.1315,-80.18030556,3,66,"Blue Ridge","Upper Roanoke","RU02","7","VI","pH","Yes","No","WCRO",3010101,4,"A","L01",2015-11-18,"Fall","Mountain","Riffle",322
+"61","4ABTM008.98",37.161292,-80.143186,3,66,"Blue Ridge","Upper Roanoke","RU02","7","VI","pH","Yes","No","WCRO",NA,4,"A","",2017-04-11,"Spring","Mountain","Riffle",101
+"67","4ABTM008.98",37.161292,-80.143186,3,66,"Blue Ridge","Upper Roanoke","RU02","7","VI","pH","Yes","No","WCRO",NA,4,"A","",2017-08-31,"Fall","Mountain","Riffle",243
+"73","4ACEC001.24",36.98821111,-79.55127222,3,45,"Piedmont","Upper Roanoke","RU37","6a","III","No","No","No","WCRO",3010101,4,"A","L18",2010-04-14,"Spring","Piedmont","Riffle",104
+"89","4ACEC001.24",36.98821111,-79.55127222,3,45,"Piedmont","Upper Roanoke","RU37","6a","III","No","No","No","WCRO",3010101,4,"A","L18",2010-10-26,"Fall","Piedmont","Riffle",299
+"105","4ACEC001.24",36.98821111,-79.55127222,3,45,"Piedmont","Upper Roanoke","RU37","6a","III","No","No","No","WCRO",3010101,4,"A","L18",2013-05-28,"Spring","Piedmont","Riffle",148
+"121","4ACEC001.24",36.98821111,-79.55127222,3,45,"Piedmont","Upper Roanoke","RU37","6a","III","No","No","No","WCRO",3010101,4,"A","L18",2013-10-28,"Fall","Piedmont","Riffle",301
+"137","4ACRR011.77",36.9002,-79.45780556,2,45,"Piedmont","Banister","RD55","2d","III","PWS","No","No","SCRO",3010105,4,"A","L66",2017-04-12,"Spring","Piedmont","Riffle",102
+"227","4ACRR011.77",36.9002,-79.45780556,2,45,"Piedmont","Banister","RD55","2d","III","PWS","No","No","SCRO",3010105,4,"A","L66",2017-11-02,"Fall","Piedmont","Riffle",306
+"317","4ACRR011.77",36.9002,-79.45780556,2,45,"Piedmont","Banister","RD55","2d","III","PWS","No","No","SCRO",3010105,4,"A","L66",2019-03-26,"Spring","Piedmont","Riffle",85
+"407","4ACRR011.77",36.9002,-79.45780556,2,45,"Piedmont","Banister","RD55","2d","III","PWS","No","No","SCRO",3010105,4,"A","L66",2019-09-04,"Fall","Piedmont","Riffle",247
+"497","4ADAN183.06",36.65003611,-80.44773056,3,66,"Blue Ridge","Upper Dan","RD02","3g","V","No","Yes","No","WCRO",3010103,4,"A","L42",2004-05-19,"Spring","Mountain","Riffle",140
+"505","4ADAN183.06",36.65003611,-80.44773056,3,66,"Blue Ridge","Upper Dan","RD02","3g","V","No","Yes","No","WCRO",3010103,4,"A","L42",2004-10-20,"Fall","Mountain","Riffle",294
+"513","4ADAN183.06",36.65003611,-80.44773056,3,66,"Blue Ridge","Upper Dan","RD02","3g","V","No","Yes","No","WCRO",3010103,4,"A","L42",2015-05-04,"Spring","Mountain","Riffle",124
+"521","4ADAN183.06",36.65003611,-80.44773056,3,66,"Blue Ridge","Upper Dan","RD02","3g","V","No","Yes","No","WCRO",3010103,4,"A","L42",2015-11-18,"Fall","Mountain","Riffle",322
+"529","4ADAN199.71",36.7024,-80.3995,2,66,"Blue Ridge","Upper Dan","RD01","3g","IV","No","No","No","WCRO",3010103,4,"A","L42",2014-05-05,"Spring","Mountain","Riffle",125
+"533","4ADAN199.71",36.7024,-80.3995,2,66,"Blue Ridge","Upper Dan","RD01","3g","IV","No","No","No","WCRO",3010103,4,"A","L42",2014-10-20,"Fall","Mountain","Riffle",293
+"537","4ADAY003.97",37.40947778,-79.75106111,0,67,"Ridge and Valley","Upper Roanoke","RU39","5a","V","No","Yes","No","WCRO",3010101,4,"A","L20",2002-10-18,"Fall","Mountain","Riffle",291
+"549","4ADAY003.97",37.40947778,-79.75106111,0,67,"Ridge and Valley","Upper Roanoke","RU39","5a","V","No","Yes","No","WCRO",3010101,4,"A","L20",2005-06-06,"Spring","Mountain","Riffle",157
+"561","4ADAY003.97",37.40947778,-79.75106111,0,67,"Ridge and Valley","Upper Roanoke","RU39","5a","V","No","Yes","No","WCRO",3010101,4,"A","L20",2013-06-10,"Spring","Mountain","Riffle",161
+"573","4ADAY003.97",37.40947778,-79.75106111,0,67,"Ridge and Valley","Upper Roanoke","RU39","5a","V","No","Yes","No","WCRO",3010101,4,"A","L20",2013-10-21,"Fall","Mountain","Riffle",294
+"585","4AGOS000.71",37.0975,-80.2147,3,66,"Blue Ridge","Upper Roanoke","RU01","7","V","pH","Yes","No","WCRO",3010101,4,"A","L01",2000-10-12,"Fall","Mountain","Riffle",286
+"597","4AGOS000.71",37.0975,-80.2147,3,66,"Blue Ridge","Upper Roanoke","RU01","7","V","pH","Yes","No","WCRO",3010101,4,"A","L01",2005-11-08,"Fall","Mountain","Riffle",312
+"609","4AGOS000.71",37.0975,-80.2147,3,66,"Blue Ridge","Upper Roanoke","RU01","7","V","pH","Yes","No","WCRO",3010101,4,"A","L01",2011-06-15,"Spring","Mountain","Riffle",166
+"621","4AGOS000.71",37.0975,-80.2147,3,66,"Blue Ridge","Upper Roanoke","RU01","7","V","pH","Yes","No","WCRO",3010101,4,"A","L01",2011-11-08,"Fall","Mountain","Riffle",312
+"633","4AIVV002.00",36.68264167,-80.36998889,2,66,"Blue Ridge","Upper Dan","RD01","0","0","No","No","No","WCRO",3010103,4,"A","L42",2010-04-26,"Spring","Mountain","Riffle",116
+"637","4AIVV002.00",36.68264167,-80.36998889,2,66,"Blue Ridge","Upper Dan","RD01","0","0","No","No","No","WCRO",3010103,4,"A","L42",2010-09-08,"Fall","Mountain","Riffle",251
+"641","4ALLC002.18",37.0315,-79.3066,2,45,"Piedmont","Upper Roanoke","RU47","5a","III","PWS","No","No","WCRO",NA,4,"A","",2016-03-31,"Spring","Piedmont","Riffle",91
+"647","4ALLC002.18",37.0315,-79.3066,2,45,"Piedmont","Upper Roanoke","RU47","5a","III","PWS","No","No","WCRO",NA,4,"A","",2016-11-17,"Fall","Piedmont","Riffle",322
+"653","4AMSA000.02",36.7925,-80.004212,3,45,"Piedmont","Upper Dan","RD21","4","III","No","No","No","WCRO",NA,4,"A","",2019-05-22,"Spring","Piedmont","Riffle",142
+"654","4ASIT001.46",37.3071,-80.319,1,67,"Ridge and Valley","Upper Roanoke","RU06","7","IV","pH","No","No","WCRO",3010101,4,"A","L02",2013-05-30,"Spring","Mountain","Riffle",150
+"655","4ASOT002.90",36.86985,-80.18422778,1,45,"Piedmont","Upper Dan","RD17","4","VI","No","Yes","No","WCRO",3010103,4,"A","L51",2016-04-07,"Spring","Piedmont","Riffle",98
+"661","4ASOT002.90",36.86985,-80.18422778,1,45,"Piedmont","Upper Dan","RD17","4","VI","No","Yes","No","WCRO",3010103,4,"A","L51",2016-10-19,"Fall","Piedmont","Riffle",293
+"667","4ASRE063.69",36.8436,-80.1617,3,45,"Piedmont","Upper Dan","RD17","3g","V","No","Yes","No","WCRO",3010103,4,"A","L51",2016-08-25,"Fall","Piedmont","Riffle",238
+"737","4ASRE063.69",36.8436,-80.1617,3,45,"Piedmont","Upper Dan","RD17","3g","V","No","Yes","No","WCRO",3010103,4,"A","L51",2018-06-06,"Spring","Piedmont","Riffle",157
+"807","4ASRE063.69",36.8436,-80.1617,3,45,"Piedmont","Upper Dan","RD17","3g","V","No","Yes","No","WCRO",3010103,4,"A","L51",2019-05-22,"Spring","Piedmont","Riffle",142
+"877","4ASRE063.69",36.8436,-80.1617,3,45,"Piedmont","Upper Dan","RD17","3g","V","No","Yes","No","WCRO",3010103,4,"A","L51",2019-10-24,"Fall","Piedmont","Riffle",297
+"947","4ASRE069.46",36.80630556,-80.20038889,4,45,"Piedmont","Upper Dan","RD17","3g","V","No","Yes","No","WCRO",3010103,4,"A","L51",2008-04-10,"Spring","Piedmont","Riffle",101
+"950","4ASRE069.46",36.80630556,-80.20038889,4,45,"Piedmont","Upper Dan","RD17","3g","V","No","Yes","No","WCRO",3010103,4,"A","L51",2019-05-21,"Spring","Piedmont","Riffle",141
+"953","4AXOF001.26",36.802,-79.7009,1,45,"Piedmont","Upper Roanoke","RU34","6a","III","No","No","No","WCRO",3010101,4,"A","L17",2012-04-25,"Spring","Piedmont","Riffle",116
+"957","4AXOF001.26",36.802,-79.7009,1,45,"Piedmont","Upper Roanoke","RU34","6a","III","No","No","No","WCRO",3010101,4,"A","L17",2012-09-12,"Fall","Piedmont","Riffle",256
+"961","4AXSP001.93",36.6272,-80.1882,1,45,"Piedmont","Upper Dan","RD08","4","III","No","No","No","WCRO",3010103,4,"A","L44",2011-04-19,"Spring","Piedmont","Riffle",109
+"967","4AXSP001.93",36.6272,-80.1882,1,45,"Piedmont","Upper Dan","RD08","4","III","No","No","No","WCRO",3010103,4,"A","L44",2011-11-02,"Fall","Piedmont","Riffle",306

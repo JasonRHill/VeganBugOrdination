@@ -1,0 +1,55 @@
+Taxa,Phylum,Class,Subclass,Order,Suborder,Superfamily,Family,Subfamily,Tribe,Genus,Species,Final VA Family ID,FinalID,TolVal,FFG,Habit,FamFFG,FamTolVal,FamHabit
+Adicrophleps,Arthropoda,Insecta,,Trichoptera,,,Brachycentridae,,,Adicrophleps,Adicrophleps hitchcocki,Brachycentridae,Adicrophleps hitchcocki,,,Clinger,Filterer,1,Clinger
+Agabetes,Arthropoda,Insecta,,Coleoptera,,,Dytiscidae,,,Agabetes,Agabetes acuductus,Dytiscidae,Agabetes acuductus,,Predator,,Predator,6,Swimmer
+Ancyronyx,Arthropoda,Insecta,,Coleoptera,,,Elmidae,,,Ancyronyx,Ancyronyx variegatus,Elmidae,Ancyronyx variegatus,6.2,Collector,Clinger,Scraper,4,Clinger
+Anisocentropus,Arthropoda,Insecta,,Trichoptera,,,Calamoceratidae,,,Anisocentropus,Anisocentropus pyraloides,Calamoceratidae,Anisocentropus pyraloides,,Shredder,Sprawler,Shredder,2,Sprawler
+Attaneuria,Arthropoda,Insecta,,Plecoptera,,,Perlidae,,,Attaneuria,Attaneuria ruralis,Perlidae,Attaneuria ruralis,,Predator,,Predator,1,Clinger
+Barbaetis,Arthropoda,Insecta,,Ephemeroptera,,,Baetidae,,,Barbaetis,Barbaetis benfieldi,Baetidae,Barbaetis benfieldi,,Collector,Swimmer,Collector,4,Swimmer
+Basiaeschna,Arthropoda,Insecta,,Odonata,Anisoptera,,Aeshnidae,,,Basiaeschna,Basiaeschna janata,Aeshnidae,Basiaeschna janata,,Predator,Climber,Predator,3,Climber
+Choroterpes,Arthropoda,Insecta,,Ephemeroptera,,,Leptophlebiidae,,,Choroterpes,Choroterpes basalis,Leptophlebiidae,Choroterpes basalis,,Collector,Clinger,Collector,2,Swimmer
+Chromagrion,Arthropoda,Insecta,,Odonata,Zygoptera,,Coenagrionidae,,,Chromagrion,Chromagrion conditum,Coenagrionidae,Chromagrion conditum,,Predator,Climber,Predator,9,Climber
+Clioperla,Arthropoda,Insecta,,Plecoptera,,,Perlodidae,Isoperlinae,,Clioperla,Clioperla clio,Perlodidae,Clioperla clio,4.25,,Clinger,Predator,2,Clinger
+Cyrnellus,Arthropoda,Insecta,,Trichoptera,,,Polycentropodidae,,,Cyrnellus,Cyrnellus fraternus,Polycentropodidae,Cyrnellus fraternus,4.5,Filterer,Clinger,Filterer,6,Clinger
+Dibusa,Arthropoda,Insecta,,Trichoptera,,,Hydroptilidae,,,Dibusa,Dibusa angata,Hydroptilidae,Dibusa angata,,Scraper,Clinger,Scraper,6,Clinger
+Didymops,Arthropoda,Insecta,,Odonata,Anisoptera,,Corduliidae,Macromiinae,,Didymops,Didymops transversa,Macromiidae,Didymops transversa,6,Predator,Sprawler,Predator,3,Sprawler
+Diphetor,Arthropoda,Insecta,,Ephemeroptera,,,Baetidae,,,Diphetor,Diphetor hageni,Baetidae,Diphetor hageni,4,Collector,Swimmer,Collector,4,Swimmer
+Eccoptura,Arthropoda,Insecta,,Plecoptera,,,Perlidae,Acroneuriinae,,Eccoptura,Eccoptura xanthenes,Perlidae,Eccoptura xanthenes,4.6,Predator,Clinger,Predator,1,Clinger
+Epiaeschna,Arthropoda,Insecta,,Odonata,Anisoptera,,Aeshnidae,,,Epiaeschna,Epiaeschna heros,Aeshnidae,Epiaeschna heros,,Predator,Climber,Predator,3,Climber
+Habrophlebia,Arthropoda,Insecta,,Ephemeroptera,,,Leptophlebiidae,,,Habrophlebia,Habrophlebia vibrans,Leptophlebiidae,Habrophlebia vibrans,2,,Swimmer,Collector,2,Swimmer
+Hagenius,Arthropoda,Insecta,,Odonata,Anisoptera,,Gomphidae,,,Hagenius,Hagenius brevistylus,Gomphidae,Hagenius brevistylus,6,Predator,Sprawler,Predator,1,Burrower
+Helicopsyche,Arthropoda,Insecta,,Trichoptera,,,Helicopsychidae,,,Helicopsyche,Helicopsyche borealis,Helicopsychidae,Helicopsyche borealis,4.6,Scraper,Clinger,Shredder,3,Clinger
+Helocombus,Arthropoda,Insecta,,Coleoptera,,,Hydrophilidae,,,Helocombus,Helocombus bifidus,Hydrophilidae,Helocombus bifidus,,,,Predator,5,
+Heteroplectron,Arthropoda,Insecta,,Trichoptera,,,Calamoceratidae,,,Heteroplectron,Heteroplectron americanum,Calamoceratidae,Heteroplectron americanum,4.25,Shredder,Sprawler,Shredder,2,Sprawler
+Hydatophylax,Arthropoda,Insecta,,Trichoptera,,,Limnephilidae,Limnephilinae,,Hydatophylax,Hydatophylax argus,Limnephilidae,Hydatophylax argus,4.57,Shredder,Sprawler,Shredder,4,
+Litobrancha,Arthropoda,Insecta,,Ephemeroptera,,,Ephemeridae,,,Litobrancha,Litobrancha recurvata,Ephemeridae,Litobrancha recurvata,,,Burrower,Collector,4,Burrower
+Lype,Arthropoda,Insecta,,Trichoptera,,,Psychomyiidae,Psychomyiinae,,Lype,Lype diversa,Psychomyiidae,Lype diversa,5.4,Scraper,Clinger,Collector,2,Clinger
+Macronychus,Arthropoda,Insecta,,Coleoptera,,,Elmidae,,,Macronychus,Macronychus glabratus,Elmidae,Macronychus glabratus,5.4,Collector,Clinger,Scraper,4,Clinger
+Malirekus,Arthropoda,Insecta,,Plecoptera,,,Perlodidae,Perlodinae,Perlodini,Malirekus,Malirekus hastatus,Perlodidae,Malirekus hastatus,4.25,,Clinger,Predator,2,Clinger
+Oemopteryx,Arthropoda,Insecta,,Plecoptera,,,Taeniopterygidae,Brachypteryinae,,Oemopteryx,Oemopteryx contorta,Taeniopterygidae,Oemopteryx contorta,4.25,,Sprawler,Shredder,2,Sprawler
+Pachydiplax,Arthropoda,Insecta,,Odonata,Anisoptera,,Libellulidae,,,Pachydiplax,Pachydiplax longipennis,Libellulidae,Pachydiplax longipennis,6,Predator,Sprawler,Predator,9,Sprawler
+Penelomax,Arthropoda,Insecta,,Ephemeroptera,,,Ephemerellidae,,,Penelomax,Penelomax septentrionalis,Ephemerellidae,Penelomax septentrionalis,,,,Collector,4,Clinger
+Potamyia,Arthropoda,Insecta,,Trichoptera,,,Hydropsychidae,,,Potamyia,Potamyia flava,Hydropsychidae,Potamyia flava,,Filterer,Clinger,Filterer,6,Clinger
+Protoplasa,Arthropoda,Insecta,,Diptera,,,Tanyderidae,,,Protoplasa,Protoplasa fitchii,Tanyderidae,Protoplasa fitchii,,,Sprawler,Collector,7,Sprawler
+Rasvena,Arthropoda,Insecta,,Plecoptera,,,Chloroperlidae,,,Rasvena,Rasvena terna,Chloroperlidae,Rasvena terna,,,,Predator,1,Clinger
+Sperchopsis,Arthropoda,Insecta,,Coleoptera,,,Hydrophilidae,,,Sperchopsis,Sperchopsis tessellata,Hydrophilidae,Sperchopsis tessellata,,,Clinger,Predator,5,
+Taenionema,Arthropoda,Insecta,,Plecoptera,,,Taeniopterygidae,Brachypteryinae,,Taenionema,Taenionema atlanticum,Taeniopterygidae,Taenionema atlanticum,3,,Sprawler,Shredder,2,Sprawler
+Teloganopsis,Arthropoda,Insecta,,Ephemeroptera,,,Ephemerellidae,,,Teloganopsis,,Ephemerellidae,Teloganopsis deficiens,3.6,Collector,Clinger,Collector,4,Clinger
+Timpanoga,Arthropoda,Insecta,,Ephemeroptera,,,Ephemerellidae,,,Timpanoga,Timpanoga hecuba,Ephemerellidae,Timpanoga hecuba,4.75,Collector,Clinger,Collector,4,Clinger
+"Americaenis- not in VA database, ",,,,,,,,,,,,,,,,,,,
+Ansiocentropus- sp? Anisocentropus,,,,,,,,,,,,,,,,,,,
+"Astioplax dolani- renamed ephemerellidae, Asioplax dolani in VA",,,,,,,,,,,,,,,,,,,
+Chironomidae (A)- Chironomidae,,,,,,,,,,,,,,,,,,,
+Glossophoniidae- none from 69; hirudinea,,,,,,,,,,,,,,,,,,,
+"Helobdellidae- none in 69, hirudinea",,,,,,,,,,,,,,,,,,,
+"Libellulidae/Cordullidae- rare, corduliidae in VA",,,,,,,,,,,,,,,,,,,
+Lymnaidae- sp? Lymnaeidae,,,,,,,,,,,,,,,,,,,
+Nematomrpha- sp Nematomorpha,,,,,,,,,,,,,,,,,,,
+Nematopmorpha-sp Nematomorpha,,,,,,,,,,,,,,,,,,,
+"Nemoura- Rare, high elevation ",,,,,,,,,,,,,,,,,,,
+Neopleiidae- not a family,,,,,,,,,,,,,,,,,,,
+Phyrganaeidae- Phryganaeidae,,,,,,,,,,,,,,,,,,,
+Phyrganea- Phryganea,,,,,,,,,,,,,,,,,,,
+Potmayia flava- Potamayia flava,,,,,,,,,,,,,,,,,,,
+"Pyralidae- rare, erroneous ID?, not aquatic- remove",,,,,,,,,,,,,,,,,,,
+Sphaeriidae- changed to Pisidiidae,,,,,,,,,,,,,,,,,,,
+Stratiomyiidae- sp Stratiomyidae,,,,,,,,,,,,,,,,,,,

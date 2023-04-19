@@ -1,0 +1,150 @@
+StationID,StreamName,Year,StressCat,LongitudeDD,LatitudeDD,Drainage,Basin,SubBasin,EcoRegion,BioRegion,Order,FishBasinSize,FishStreamSizeCat,AREA_SQ_MILES,LRBSSlope,ELEVMEAN,SLPMEAN,TempClass
+1AXLB000.05,UT to Long Branch,2014,Ref,-77.5038,38.4278,Atlantic,Potomac-Shenandoah,Potomac,Piedmont,Piedmont,1,1,Tiny,1.134213701,0.6,78.47908008,3.266117495,III
+1AXMJ000.42,UT Cedar Run,2014,Ref,-77.5055,38.6375,Atlantic,Potomac-Shenandoah,Potomac,Northern Piedmont,Piedmont,2,2,Small,4.5726465,0.715,91.54405604,4.496485756,III
+1AXMJ000.42,UT Cedar Run,2012,Ref,-77.5055,38.6375,Atlantic,Potomac-Shenandoah,Potomac,Piedmont,Piedmont,2,2,Small,4.5726465,0.4,91.54405604,4.496485756,III
+1BBGR004.08,Big Run,2011,Ref,-78.6994,38.2914,Atlantic,Potomac-Shenandoah,Shenandoah,Blue Ridge Mountains,Mountain,2,2,Small,8.039921078,1.59375,650.5794984,21.36155891,VI
+1BGSR000.58,Gravel Springs Run,2014,Ref,-78.4385,39.0741,Atlantic,Potomac-Shenandoah,Shenandoah,Central Appalachian Ridges and Valleys,Mountain,2,2,Small,4.764462026,1.255,448.3319923,11.76058372,IV
+1BHPY002.67,Happy Creek,2008,Ref,-78.18595413,38.90968564,Atlantic,Potomac-Shenandoah,Shenandoah,Central Appalachian Ridges and Valleys,Mountain,2,3,Medium,17.56780265,1.1542,398.7988884,11.38021966,IV
+1BNFS093.80,North Fork Shenandoah River,2014,Ref,-78.8566,38.6353,Atlantic,Potomac-Shenandoah,Shenandoah,Central Appalachian Ridges and Valleys,Mountain,4,4,Large,209.771851,0.3,595.3249017,15.45669935,IV
+1BNTH046.56,North River,2007,Ref,-79.23751331,38.33238264,Atlantic,Potomac-Shenandoah,Shenandoah,Central Appalachian Ridges and Valleys,Mountain,2,3,Medium,20.74978637,0.826,924.6238335,15.85619592,VI
+2ABLD014.73,Buffalo Creek,2013,Ref,-79.5598,37.7488,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,3,3,Medium,43.15398189,0.29583,573.1749001,13.62876433,IV
+2AXQS001.07,UNT Sinking Creek,2006,Ref,-79.7736135,37.71675207,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,2,1,Tiny,1.242283695,1.713333333,444.383232,12.32024051,IV
+2-BCC001.90,Back Creek,2006,Ref,-79.9057917,38.04965682,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,2,4,Large,139.0954648,0.39625,863.243282,18.82167525,VI
+2BGOW001.00,Goodwin Creek,2014,Ref,-78.8438,37.9838,Atlantic,James,James,Northern Piedmont,Piedmont,2,2,Small,6.422693577,1.61,529.6808064,15.02338922,III
+2-BLD012.09,Buffalo Creek,2008,Ref,-79.49132755,37.73281761,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,4,4,Large,92.57915086,0.3242,535.871585,13.07918442,IV
+2BMCM014.13,Mechums River,2013,Ref,-78.6722,38.0289,Atlantic,James,James,Northern Piedmont,Piedmont,4,3,Medium,31.41605155,0.19167,250.9659586,8.879883012,III
+2BPRS001.90,South Fork Piney River,2014,Ref,-79.1456,37.7908,Atlantic,James,James,Blue Ridge Mountains,Mountain,2,2,Small,4.132026691,7.01,987.4445036,16.79426091,VI
+2-BVC003.09,Beaver Creek,2007,Ref,-78.72229743,37.73593646,Atlantic,James,James,Northern Piedmont,Piedmont,3,3,Medium,16.47494049,0.268,205.2495424,7.873501674,III
+2BXAD000.07,UT to Little Georgia Creek,2011,Ref,-78.4909,37.7458,Atlantic,James,James,Piedmont,Piedmont,1,1,Tiny,0.853440211,1.72,139.9985289,3.064945766,III
+2-BYN001.90,Bryant Creek,2014,Ref,-78.5307,37.5415,Atlantic,James,James,Piedmont,Piedmont,2,1,Tiny,2.07487439,0.4667,169.6104132,3.404635009,III
+2-CLL003.21,Colliers Creek,2007,Ref,-79.58305986,37.78170985,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,3,3,Medium,21.99554499,1.04,593.9824664,14.92346901,IV
+2-CRG015.50,Craig Creek,2014,Ref,-79.9297,37.6487,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,4,4,Large,321.7813613,,638.8387143,12.75356277,IV
+2-CRG047.95,Craig Creek,2011,Ref,-80.0876,37.5112,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,4,4,Large,220.6347966,0.32625,664.5596686,12.64537233,IV
+2-CRG074.32,Craig Creek,2010,Ref,-80.32893742,37.33534518,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,2,3,Medium,14.4219581,0.75,702.0399051,12.82224494,IV
+2-DCK003.94,Dicks Creek,2004,Ref,-80.348271,37.463344,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,2,1,Tiny,1.6988881,2.79,828.3133777,13.92976385,IV
+2-DCK003.94,Dicks Creek,2011,Ref,-80.34804838,37.46347082,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,2,1,Tiny,1.6988881,2.9,828.3133777,13.92976385,IV
+2-DCK003.94,Dicks Creek,2013,Ref,-80.348,37.4635,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,2,1,Tiny,1.6988881,3.073,828.3133777,13.92976385,IV
+2-DCK003.94,Dicks Creek,2008,Ref,-80.348,37.4635,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,2,1,Tiny,2.079529068,2.767,846.3173,13.359,IV
+2-DDY000.75,Daddy Run,2011,Ref,-79.37611138,38.17732121,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,1,1,Tiny,2.4463433,2.6,801.5748395,15.57568713,IV
+2-DDY000.75,Daddy Run,2013,Ref,-79.3761,38.1773,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,1,1,Tiny,2.4463433,2.8467,801.5748395,15.57568713,IV
+2DFSP000.30,Fishpond Creek,2009,Ref,-78.64152301,37.36980779,Atlantic,James,James,Piedmont,Piedmont,3,3,Medium,13.6109119,0.1583,200.610024,5.303108388,III
+2-HAM000.37,Haymaker Branch,2012,Ref,-80.021,37.4128,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,2,1,Tiny,1.3983076,1.76,554.1484305,17.19607855,IV
+2-HKY001.26,Hickory Lick,2009,Ref,-80.03744209,37.92417541,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,1,1,Tiny,0.465291711,6.86,850.1853857,23.37320978,IV
+2-HUO005.87,Hunting Creek,2015,Ref,-79.44821,37.5392,Atlantic,James,James,Blue Ridge Mountains,Mountain,1,2,Small,9,,997.9985566,15.66823538,VI
+2-JED008.07,Jerrys Run,2014,Ref,-80.1939,37.7974,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,2,2,Small,3.602796462,1.2967,790.9055125,16.33965348,IV
+2-JKS057.08,Jackson River,2008,Ref,-79.87784,38.045652,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,3,4,Large,156.8514666,0.415,811.0822,11.8276,IV
+2-JOB013.77,Johns Creek,2011,Ref,-80.2604,37.4811,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,4,4,Large,66.12945415,0.125,742.5048507,12.15475775,IV
+2-MIW003.45,Mill Creek,2004,Ref,-79.711857,37.996557,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,3,3,Medium,15.78794892,0.7078125,623.4078002,13.67073116,VI
+2-OGL005.53,Ogle Creek,2001,Ref,-80.122457,37.839865,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,2,3,Medium,12.53160193,,697.5652053,19.75097738,IV
+2-PMC000.59,Pounding Mill Creek,2010,Ref,-79.96358545,37.78017874,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,2,2,Small,9.051122631,2.913,753.6958906,17.15594077,VI
+2-POT031.78,Potts Creek,2009,Ref,-80.22836828,37.59099289,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,4,4,Large,67.08575198,0.52,782.0942828,14.01814748,IV
+2-PRS003.23,SF Piney River,2008,Ref,-79.16347484,37.7818475,Atlantic,James,James,Blue Ridge Mountains,Mountain,1,1,Tiny,2.391787042,4.4737,997.9985566,15.66823538,VI
+2-PTR005.13,Patterson Creek,2003,Ref,-79.890103,37.622641,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,2,2,Small,8.176485411,,457.3747888,14.37219973,IV
+2-RAM007.29,Ramseys Draft,2015,Ref,-79.34633611,38.32266667,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,1,2,Small,9,,997.9985566,15.66823538,VI
+2-RED003.65,Reed Creek,2009,Ref,-79.383514,37.508941,Atlantic,James,James,Piedmont,Piedmont,4,3,Medium,16.56097738,0.7861,458.3761,10.9134,III
+2-RED003.65,Reed Creek,2011,Ref,-79.38326837,37.50907932,Atlantic,James,James,Piedmont,Piedmont,4,3,Medium,16.7,0.69,460.8618629,12.5477408,III
+2-RED003.65,Reed Creek,2013,Ref,-79.3833,37.5091,Atlantic,James,James,Piedmont,Piedmont,4,3,Medium,16.7,0.865625,460.8618629,12.5477408,III
+2-RGR001.11,Roaring Run,2005,Ref,-79.892596,37.70515,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,2,1,Tiny,2.237153127,4.073333333,691.7584561,18.2281395,IV
+2-SKM001.04,Stockton Creek,2007,Ref,-78.67313052,38.04161038,Atlantic,James,James,Northern Piedmont,Piedmont,2,3,Medium,21.8916449,0.253,344.7644558,9.466962417,III
+2-SLT003.00,Slate River,2007,Ref,-78.36879356,37.70809425,Atlantic,James,James,Piedmont,Piedmont,4,4,Large,225.3130807,0.172,157.1397593,3.953433898,III
+2-STV000.48,Shawvers Run,2004,Ref,-80.186796,37.620492,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,3,2,Small,4.529557473,2.975,786.3280501,15.46593395,VI
+2-SWS000.90,Swanson Branch,2008,Ref,-79.89365621,37.71362927,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,1,1,Tiny,0.485446244,9.21333,628.7014734,20.69927193,IV
+2-TLR000.52,Taylor Creek,2006,Ref,-78.81463869,37.93242491,Atlantic,James,James,Northern Piedmont,Piedmont,2,2,Small,8.343629036,0.84,358.8559719,15.54176398,III
+2-TYE008.77,Tye River,2011,Ref,-78.90302594,37.63333906,Atlantic,James,James,Piedmont,Piedmont,5,4,Large,198,0.29,481.8441747,13.17306458,III
+2-TYE008.77,Tye River,2013,Ref,-78.903,37.6333,Atlantic,James,James,Piedmont,Piedmont,5,4,Large,198,0.4025,481.8441747,13.17306458,III
+2-TYE028.94,Tye River,2009,Ref,-79.00654174,37.79978863,Atlantic,James,James,Piedmont,Piedmont,4,4,Large,51.32178,0.4425,710.2534077,17.91560297,III
+2-WLL001.83,Williams Creek,2007,Ref,-79.08256485,37.57082071,Atlantic,James,James,Piedmont,Piedmont,1,1,Tiny,1.523752169,0.72,272.7896907,9.498650718,III
+2-WLN006.90,Wilson Creek,2002,Ref,-79.80374,37.897411,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,3,3,Medium,17.57961738,,754.7981959,15.97767515,IV
+2-WLS029.32,Willis River,2009,Ref,-78.31031,37.523699,Atlantic,James,James,Piedmont,Piedmont,4,4,Large,139.0691056,,138.7339,3.004,III
+3-HAZ035.32,Hazel River,2014,Ref,-78.1917,38.5546,Atlantic,Rappahannock-York,Rappahannock,Northern Piedmont,Piedmont,2,3,Medium,20.32932112,0.26,392.368791,11.94988351,III
+3-PIY003.27,Piney River,2015,Ref,-78.26866981,38.70296339,Atlantic,Rappahannock-York,Rappahannock,Blue Ridge Mountains,Mountain,1,2,Small,9,,997.9985566,15.66823538,VI
+3-RAP088.21,Rapidan River (upper),2015,Ref,-78.40670074,38.48708676,Atlantic,Rappahannock-York,Rappahannock,Blue Ridge Mountains,Mountain,2,2,Small,9,,997.9985566,15.66823538,VI
+4ABLG001.95,Big Laurel Creek,2014,Ref,-80.176,37.1527,Atlantic,Roanoke,Roanoke,Blue Ridge Mountains,Mountain,2,2,Small,3.198663332,3.053,1023.768755,15.17369133,VI
+4ABTF003.11,Button Creek,2008,Ref,-79.03767474,37.25749686,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,2,2,Small,5.945934631,0.42,264.9834213,6.140792311,III
+4ABVE002.18,West Fork Beaverdam Creek,2007,Ref,-79.77109075,37.25851835,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,3,2,Small,8.262663413,0.45,455.332801,11.66621132,IV
+4ACAS003.45,Cascade Creek,2012,Ref,-79.67981,36.5595,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,3,3,Medium,21.97678042,0.35278,239.0553012,4.977916503,IV
+4ACAS003.45,Cascade Creek,2016,Ref,-79.67981,36.5595,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,3,3,Medium,21.97678042,0.2639,239.0553012,4.977916503,IV
+4ACEC000.82,Cedar Creek,2007,Ref,-79.53321299,36.99434588,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,3,2,Small,5.811802741,0.76,298.1515594,9.948830854,III
+4ACEC001.24,Cedar Creek,2010,Ref,-79.55127137,36.98819348,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,3,1,Tiny,2.770205767,0.9925,311.6451065,9.914274963,III
+4ACNT003.84,Big Chestnut Creek,2010,Ref,-79.77299963,36.92069552,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,4,4,Large,58.3042831,0.23,353.0622192,7.219727748,III
+4ACNT022.05,Big Chestnut Creek,2011,Ref,-79.8873,36.859,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,3,3,Medium,11.77024708,0.2143,383.5008405,6.817329235,III
+4ADAN199.71,Dan River,2014,Ref,-80.3995,36.7024,Atlantic,Roanoke,Roanoke,Blue Ridge Mountains,Mountain,2,3,Medium,11.07561069,0.613,915.0244905,8.549135058,IV
+4AFRV017.85,Falling River,2013,Ref,-78.9505,37.1957,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,4,4,Large,109.5013135,0.185,223.5221533,5.111491181,III
+4AGSE015.07,Goose Creek,2006,Ref,-79.53623863,37.1690941,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,4,4,Large,179.4424068,0.12125,335.6188159,9.389801264,III
+4AMEE017.24,Maggodee Creek,2014,Ref,-79.9609,37.1256,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,3,3,Medium,12.5632237,0.653,585.4344557,16.0946634,IV
+4APGG063.32,Pigg River,2011,Ref,-79.9136,36.9697,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,3,3,Medium,40.08528054,0.203,453.8161074,8.93881842,III
+4APGG076.93,Pigg River,2009,Ref,-80.04858188,36.97689566,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,2,2,Small,7.869650026,0.392,543.0398963,10.74264208,III
+4ARKN003.68,Rock Run,2008,Ref,-80.01221275,36.73001751,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,1,1,Tiny,0.426720106,1.8933,319.7236551,6.59713649,III
+4ARNF015.22,NF Roanoke River,2010,Ref,-80.35211607,37.18762961,Atlantic,Roanoke,Roanoke,Central Appalachian Ridges and Valleys,Mountain,3,4,Large,63.50936491,0.4325,620.8362383,10.86056478,IV
+4AROA210.56,Roanoke River,2009,Ref,-80.01849211,37.27147169,Atlantic,Roanoke,Roanoke,Central Appalachian Ridges and Valleys,Mountain,5,4,Large,349.4896739,0.135,601.7250388,13.30948196,IV
+4ARSF007.07,South Fork Roanoke River,2008,Ref,-80.23609826,37.17281531,Atlantic,Roanoke,Roanoke,Central Appalachian Ridges and Valleys,Mountain,5,4,Large,121.4567738,0.18714,698.1860824,14.13127617,IV
+4ASCB005.38,Stony Creek,2008,Ref,-79.55048819,37.45301043,Atlantic,Roanoke,Roanoke,Blue Ridge Mountains,Mountain,2,2,Small,4.118474505,3.845,778.1717904,17.64767126,VI
+4ASDA004.94,Story Creek,2013,Ref,-79.9484,36.9313,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,3,3,Medium,10.93904636,0.75625,404.1295536,7.062052878,III
+4ASMR017.72,South Fork Mayo River,2007,Ref,-80.14860006,36.56821947,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,4,4,Large,82.65304352,0.31,456.1895127,11.01621394,IV
+4ASMR023.52,South Fork Mayo River,2008,Ref,-80.19670361,36.59630324,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,4,4,Large,50.27200684,0.2585,520.4613016,14.24712581,IV
+4ASRE063.69,Smith River,2012,Ref,-80.1617,36.8436,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,3,4,Large,95.1,0.2225,551.8127448,13.02579853,IV
+4ASRE063.69,Smith River,2014,Ref,-80.1617,36.8436,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,3,4,Large,95.1,0.20875,551.8127448,13.02579853,IV
+4ATRB000.97,Troublesome Creek,2013,Ref,-79.2515,37.192,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,3,2,Small,9.25127799,0.01035,245.2072972,4.575340598,III
+4AXMY000.22,UNT of Turkeycock Creek,2006,Ref,-79.63871634,36.83334274,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,1,1,Tiny,0.44722213,1.133333333,315.6247365,9.280162792,III
+4AXNC000.10,UT to Day Creek,2009,Ref,-79.71763085,37.40206931,Atlantic,Roanoke,Roanoke,Central Appalachian Ridges and Valleys,Mountain,2,1,Tiny,2.086689116,1.93,415.1398707,9.74876309,III
+4AXOF001.26,"Turkeycock Creek, UT",2012,Ref,-79.7009,36.802,Atlantic,Roanoke,Roanoke,Piedmont,Piedmont,1,1,Tiny,0.915641269,6.533,473.2982759,10.07466526,III
+4AXOH000.06,"S.F. Goose Cr, UT",2014,Ref,-79.7426,37.3653,Atlantic,Roanoke,Roanoke,Blue Ridge Mountains,Mountain,2,1,Tiny,0.5347901,6.873,546.1228689,16.33382267,III
+4BGAR001.19,Garners Creek,2009,Ref,-80.711259,36.613523,Atlantic,Roanoke,Pee-Dee,Piedmont,Piedmont,3,2,Small,3.455492428,1.5375,693.5768,12.7932,VI
+5AMHN104.12,Meherrin River,2009,Ref,-78.14342051,36.79479788,Atlantic,Chowan,Chowan,Piedmont,Piedmont,5,4,Large,322.787698,0.016176,140.720197,3.541573221,III
+5ANMR029.33,North Meherrin River,2010,Ref,-78.41026499,37.04883975,Atlantic,Chowan,Chowan,Piedmont,Piedmont,2,3,Medium,10.31634079,0.3,179.4530526,4.561781055,III
+5ANTW066.95,Nottoway River,2014,Ref,-77.323,36.9882,Atlantic,Chowan,Chowan,Southeastern Plains,Coast,5,4,Large,971.0999406,,87.17105859,2.740123815,III
+5ANTW098.82,Nottoway River,2010,Ref,-77.63249154,36.87843519,Atlantic,Chowan,Chowan,Piedmont,Piedmont,4,4,Large,485.2238491,,112.2450301,3.33245978,III
+5AXIA000.48,UT Modest Creek,2011,Ref,-78.2007,37.0387,Atlantic,Chowan,Chowan,Piedmont,Piedmont,2,1,Tiny,1.807305594,0.94,156.9329977,3.338934675,III
+6AFOX001.69,Fox Creek,2011,Ref,-82.16605093,37.15926553,Ohio,Tennessee,Big Sandy,Central Appalachians,Mountain,1,2,Small,3.1,1.33,606.6976084,20.97935791,IV
+6AFOX001.69,Fox Creek,2013,Ref,-82.16605093,37.15926553,Ohio,Tennessee,Big Sandy,Central Appalachians,Mountain,1,2,Small,3.1,1.353,606.6976084,20.97935791,IV
+6AFRY006.70,Fryingpan Creek,2009,Ref,-82.23299938,37.09320028,Ohio,Tennessee,Big Sandy,Central Appalachians,Mountain,3,3,Medium,12.1316387,0.767,659.2078642,22.58345852,IV
+6AMCR005.94,McClure River,2012,Ref,-82.3514,37.174,Ohio,Tennessee,Big Sandy,Central Appalachians,Mountain,4,4,Large,99.67980122,0.5075,670.7428824,18.80586966,IV
+6APAW001.22,PawPaw Creek,2009,Ref,-82.19606982,37.17311451,Ohio,Tennessee,Big Sandy,Central Appalachians,Mountain,2,2,Small,3.939516154,0.99,569.4091633,20.58034115,IV
+6ASAT011.43,Slate Creek,2013,Ref,-81.9537,37.3086,Ohio,Tennessee,Big Sandy,Central Appalachians,Mountain,2,3,Medium,12.1531832,0.525,648.7018883,19.04705328,IV
+6ASLV000.85,Sullivan Branch,2006,Ref,-82.17211931,37.09016245,Ohio,Tennessee,Big Sandy,Central Appalachians,Mountain,1,1,Tiny,0.753710024,4.24,638.6766293,21.14755145,IV
+6BHAR002.41,Hardy Creek,2014,Ref,-83.2583,36.6656,Ohio,Tennessee,Clinch-Powell,Central Appalachian Ridges and Valleys,Mountain,2,3,Medium,10.87649781,0.6725,507.4104392,14.2175891,IV
+6BIDI009.04,Indian Creek,2009,Ref,-81.70769539,37.15972959,Ohio,Tennessee,Clinch-Powell,Central Appalachians,Mountain,3,3,Medium,10.46854227,0.91,817.5097045,16.61322024,IV
+6BPLL001.61,South Fork Powell River,2008,Ref,-82.77178556,36.86556086,Ohio,Tennessee,Clinch-Powell,Central Appalachians,Mountain,3,3,Medium,39.8,0.2417,733.9240119,14.95539533,IV
+6BPLL001.61,South Fork Powell River,2013,Ref,-82.7716,36.8654,Ohio,Tennessee,Clinch-Powell,Central Appalachians,Mountain,3,3,Medium,39.8,0.193,733.9240119,14.95539533,IV
+6BSTC000.04,Stone Creek,2009,Ref,-83.05704536,36.77651469,Ohio,Tennessee,Clinch-Powell,Central Appalachians,Mountain,3,3,Medium,16.49856995,1.225,645.6534502,22.4803231,IV
+6CGAS000.45,Gaspard Creek,2014,Ref,-82.1576,36.742,Ohio,Tennessee,Holston,Central Appalachian Ridges and Valleys,Mountain,2,2,Small,6.824046771,1.125,614.8684428,14.13944933,IV
+6CLAL000.19,Laurel Creek,2011,Ref,-81.8294,36.6494,Ohio,Tennessee,Holston,Central Appalachian Ridges and Valleys,Mountain,4,4,Large,168.823748,0.70625,981.3510918,15.94721866,VI
+6CLIB001.06,Lick Creek,2009,Ref,-81.47481297,36.95873218,Ohio,Tennessee,Holston,Central Appalachian Ridges and Valleys,Mountain,3,3,Medium,29.99063961,0.3183,834.3042135,16.78843255,IV
+6CNFH073.03,North Fork Holston River,2009,Ref,-81.88080029,36.83973014,Ohio,Tennessee,Holston,Central Appalachian Ridges and Valleys,Mountain,4,4,Large,298.0434918,,800.2490861,15.16493584,IV
+6CSFH082.78,S.F. Holston River,2010,Ref,-81.78999904,36.67808167,Ohio,Tennessee,Holston,Central Appalachian Ridges and Valleys,Mountain,5,4,Large,124.293698,0.25,825.5677836,12.34695555,IV
+6CSFH099.18,S.F. Holston River,2010,Ref,-81.60880073,36.77459675,Ohio,Tennessee,Holston,Central Appalachian Ridges and Valleys,Mountain,4,4,Large,73.71416079,0.5267,923.2759521,13.30899763,IV
+6CSTU000.15,Sturgill Branch,2008,Ref,-81.65308472,36.65838897,Ohio,Tennessee,Holston,Blue Ridge Mountains,Mountain,1,1,Tiny,1.574485992,3.6266,1214.701705,17.23893739,VI
+8-FRK005.53,Fork Creek,2014,Ref,-78.0209,37.9107,Atlantic,Rappahannock-York,York,Piedmont,Piedmont,1,1,Tiny,2.73128667,0.63,135.1228292,3.750512505,III
+8-MAR007.63,Marcossic Creek,2008,Ref,-77.2190782,37.95227623,Atlantic,Rappahannock-York,York,Southeastern Plains,Coast,4,4,Large,64.93338689,0.0643,54.18429415,3.188729298,III
+8-PGN002.42,Pigeon Run,2006,Ref,-77.80894869,38.12339107,Atlantic,Rappahannock-York,York,Piedmont,Piedmont,2,2,Small,3.805384264,0.484375,112.2622153,3.11363808,III
+8-RIG004.13,Riga Run,2011,Ref,-77.9388,38.2339,Atlantic,Rappahannock-York,York,Piedmont,Piedmont,3,2,Small,4.958015038,0.6875,137.0208426,3.514850261,III
+8-SAR058.13,South Anna River,2008,Ref,-77.90920898,37.87805237,Atlantic,Rappahannock-York,York,Piedmont,Piedmont,4,4,Large,215.1597136,0.0625,131.0908652,3.693607437,III
+9-DDD006.61,Dodd Creek,2003,Ref,-80.318703,36.885443,Ohio,New,New,Blue Ridge Mountains,Mountain,2,2,Small,7.947835713,,785.7401541,8.418054963,IV
+9-DEF000.34,East Fork Dry Run,2009,Ref,-81.177283,36.772188,Ohio,New,New,Blue Ridge Mountains,Mountain,1,2,Small,3.3875343,1.2733,957.098,14.867,VI
+9-DPW002.31,Deepwater Creek,2008,Ref,-80.63062934,36.91659488,Ohio,New,New,Blue Ridge Mountains,Mountain,1,1,Tiny,1.472323361,,882.1483315,14.72062382,IV
+9-GSC000.44,Greasy Creek,2007,Ref,-80.65920214,36.88649023,Ohio,New,New,Blue Ridge Mountains,Mountain,3,4,Large,55.25677876,0.435,805.3376894,9.999598143,IV
+9-KNS002.44,Kisner Creek,2009,Ref,-81.25100988,36.77291879,Ohio,New,New,Blue Ridge Mountains,Mountain,2,1,Tiny,0.736335427,6.44,1002.859227,18.44338289,VI
+9-LFK005.39,Laurel Fork,2005,Ref,-81.171301,37.243087,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,2,2,Small,6.97242583,0.666666667,893.6048962,14.28141894,VI
+9-LRV012.98,Little River,2014,Ref,-80.533,37.0191,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,5,4,Large,293.0854767,,767.0733797,9.249688639,IV
+9-LRY007.02,Little Stony Creek,2015,Ref,-80.57352,37.37393,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,3,2,Small,9,,997.9985566,15.66823538,VI
+9-LVR007.16,Little River,2014,Ref,-81.0294,36.5681,Ohio,New,New,Blue Ridge Mountains,Mountain,4,4,Large,100.6972576,0.43125,767.3415574,13.87117622,IV
+9-LWK004.04,Little Walker Creek,2006,Ref,-80.76809547,37.17309013,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,3,4,Large,52.81425789,0.1575,800.4641801,13.45776107,IV
+9-MER002.99,Miller Creek,2008,Ref,-80.95602831,37.00666962,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,2,2,Small,3.491946532,,768.4600288,11.27260986,IV
+9-MLL000.90,Mill Creek,2009,Ref,-80.80054607,37.32286466,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,2,2,Small,7.097870421,2.9467,956.9077904,14.60152371,VI
+9-NBS006.58,Nobusiness Creek,2003,Ref,-80.930012,37.239376,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,2,2,Small,9.214443844,,983.0933697,11.02430504,VI
+9-PLK000.79,Pondlick Branch,2013,Ref,-80.8103,37.0515,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,2,1,Tiny,2.051939922,1.71,724.0625767,10.2089103,IV
+9-RDC049.02,Reed Creek,2013,Ref,-81.2811,36.9813,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,3,3,Medium,19.17981778,0.475,872.6935572,14.3460894,VI
+9-RDC051.21,Reed Creek,2007,Ref,-81.31079901,36.9680481,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,2,2,Small,7.312620442,0.385,874.9626552,15.56842854,IV
+9-RIC051.80,Big Reed Island Creek,2004,Ref,-80.531314,36.688988,Ohio,New,New,Blue Ridge Mountains,Mountain,3,3,Medium,20.58403272,0.315,842.9331812,7.001527337,VI
+9-SFK001.10,Stony Fork,2002,Ref,-81.179709,36.963496,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,3,3,Medium,20.34461077,,834.9918485,14.54925363,IV
+9-SFK003.38,Stony Fork,2010,Ref,-81.19331535,36.99069301,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,3,3,Medium,15.9140885,0.1729,862.9169817,15.60162637,IV
+9-SNC008.04,Stony Creek,2010,Ref,-80.6080767,37.41741494,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,3,3,Medium,27.74306172,1.2854,954.8436509,12.03718456,VI
+9-WLK033.29,Walker Creek,2011,Ref,-80.8549,37.1627,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,5,4,Large,180.3622179,0.245,815.8960548,11.239412,IV
+9-WNS001.03,East Wildernes Creek,2009,Ref,-80.97496791,37.19210674,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,2,2,Small,5.986243697,0.55,760.8352046,12.23960084,IV
+9-XEO000.57,X-Trib Laurel Fork,2007,Ref,-80.5419036,36.75187066,Ohio,New,New,Blue Ridge Mountains,Mountain,1,1,Tiny,0.9229386,3.66,819.4019775,6.817330815,VI
+MAIA97-178,Jennings Creek,1997,Ref,-79.616376,37.542762,Atlantic,James,James,Blue Ridge Mountains,Mountain,3,3,Medium,22.9566166,,562,10.6,IV
+VA754S,Calfpasture River,1994,Ref,-79.3545,38.2273,Atlantic,James,James,Central Appalachian Ridges and Valleys,Mountain,3,4,Large,54.83249116,,535,10.6,IV
+VA782S,Capon Run,1994,Ref,-78.9127,38.766075,Atlantic,Potomac-Shenandoah,Shenandoah,Central Appalachian Ridges and Valleys,Mountain,3,3,Medium,13.47990746,,432,10.6,IV
+VA805S,Lick Creek,1994,Ref,-81.4541,36.97980556,Ohio,Tennessee,Holston,Central Appalachian Ridges and Valleys,Mountain,3,3,Medium,22.99790483,,646,10.6,IV
+VAR08S,Lick Creek,1993,Ref,-81.45583,36.97861,Ohio,Tennessee,Holston,Central Appalachian Ridges and Valleys,Mountain,3,3,Medium,23.07655384,,645,10.6,IV
+VAR09S,Stony Creek,1993,Ref,-80.58417,37.41389,Ohio,New,New,Central Appalachian Ridges and Valleys,Mountain,3,3,Medium,24.2170224,,747,10.6,VI

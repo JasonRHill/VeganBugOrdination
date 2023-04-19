@@ -1,0 +1,1512 @@
+---
+title: "NMDS for Reference streams"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+always_allow_html: yes
+fig_width: 6 
+fig_height: 4 
+---
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+
+Packages used for NMDS: vegan (version 2.5-7)
+
+```{r setup, include=FALSE}
+
+
+#R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+#Copyright (C) 2020 The R Foundation for Statistical Computing
+#Platform: x86_64-w64-mingw32/x64 (64-bit)
+#knitr::opts_chunk$set(echo = TRUE)
+
+library(vegan)
+library(dplyr)
+library(lubridate)
+library(purrr) 
+library(ggplot2)
+library(readxl)
+library(tidyr)
+
+# Set working directory
+
+setwd('C:/Backup/R/NMDS/NMDS')
+
+```
+## Methods
+
+
+<font size="4"> The document shows a series of NMDS ordinations for reference benthic communities in Virginia with environmental characteristics overlaid to evaluate natural differences in community compositions across Virginia. These NMDS will support the Genus level IBI development process. This analysis is the first run of all of reference sites in Virginia. No West Virginia DEP data is used in this analysis.Reference sites were evaluated by regional biologists. 
+
+
+The dataset used includes all reference stations collected in Virginia that were deemed reference through a series or water quality parameter filters and regional biologist review. If stations appeared in the dataset more than 4 times, then the most recent 4 samples were used and the rest removed. Samples that had a total number of taxa below 100 collected at the time of sampling were also removed. Taxa that occurred in the dataset <= 5% of the time were removed. The data was log10 +1 transformed. Environmental factors were compiled for each station and used to plot over the NMDS to show environmental variation associated with the community matrix. The envfit function in Vegan was used to plot the continuous environmental variables. Some environmental variables like precipitation, slope, and elevation have not been calculated for all watersheds yet and will be added at a later date. </font>
+
+
+
+```{r files, echo=FALSE}
+
+###Load Data
+bugs <- read_excel('benthics_ExcludedTaxaDropped_LBedits.xlsx', sheet='benthics_ExcludedTaxaDropped_LB')
+
+bugs$Collection.Date<-as.Date(bugs$Collection.Date, format="%m/%d/%Y")
+
+env <- read.csv('stationsSpatial_withAllData.csv')%>%
+  subset(`X` == "Ref")
+
+env$`Collection.Date`<-as.Date(env$`Collection.Date`, format="%m/%d/%Y")
+#bugs<-read.csv("benthics_11June2021Final.csv")
+
+
+
+bioregion <- function(x) { 
+if(x == 67 | x == 69 | x== 66) y <- "Mountain"
+if(x  == 63 | x == 65 ) y <- "Coast"
+if(x == 64 | x== 45) y <- "Piedmont"
+return(y)
+}
+
+
+env$Bioregion<-sapply(env$US_L3CODE, bioregion)
+
+Refbugs <-left_join(bugs,env, by=c("StationID", "Collection.Date"))%>%
+  subset(`X`=="Ref")
+
+
+
+Refbugs<-unique(Refbugs[ , 1:412])
+
+
+
+refbugs<-write.csv("Refbugs", "data\\ReferenceBugs.csv", row.names=FALSE)
+  
+
+
+
+
+
+#DataSource, JRH_Final_Ref_Cod))
+                            #, "Coastal", "StationID","UID",     #"Year","JulianDate","Collection.Date","Sta_Desc","Latitude", "Longitude","US_L3CODE",      #"US_L3NAME","US_L4CODE","US_L4NAME","VAHU6","ASSESS_REG", "OFFICE_NM","VaName", "Tidal",            # "VAHUSB", "FedName", "HUC10","Basin",            
+#"BASIN_CODE", "Basin_Code", "CountyCityName", "FIPS", "BASINS_HUC_12",    
+#"WQS_ID","WQS_CLASS", "WQS_SPSTDS","WQS_PWS", "WQS_TROUT",        
+#"WQS_TIER_III", "Order",  "EDASOrder",  "totalArea_sqMile", "ELEVMIN",          
+#"ELEVMAX", "ELEVMEAN", "ELEVSD",  "ELEVRANGE",  "SLPMIN",           
+#"SLPMAX", "SLPMEAN", "SLPSD", "SLPRANGE", "wshdRain_mmyr",    
+#"siteRain_mmyr", "wshdRain_inyr", "siteRain_inyr", "wshedRain_inyr", "BenSampID",        
+#"RepNum", "Gradient", "Target.Count"))
+
+#env<-read.csv("StationInfo_Final.csv")
+#Bioregion<-read.csv("Bio_info.csv")
+#stationinfo<-read.csv("Lucy_Example_StationInfo.csv")
+
+
+###JRH used to check data
+#Bugenv<-left_join(bugs,env, by="UID")
+
+##Figure out how to join - removed collection date for now- LS had to remove bioregion
+
+Bugenv<-left_join(env, Refbugs, by=c("StationID", "Collection.Date"))%>%
+  select("StationID", "Year", "JulianDate", "Latitude", "Longitude", "Collection.Date", "Season" , "Gradient", "Coastal", "US_L3CODE", "US_L3NAME", "US_L4NAME", "ASSESS_REG", "Tidal", "VAHUSB", "Basin", "Basin_Code", "CountyCityName", "WQS_CLASS", "WQS_SPSTDS", "WQS_PWS", "WQS_TROUT", "WQS_TIER_III", "Order","EDASOrder", "totalArea_sqMile", "ELEVMEAN", "SLPMEAN", "wshdRain_mmyr", "siteRain_mmyr", "Bioregion" )
+#  unique()
+
+#Bioregion2<-merge(x=Bioregion, y=stationinfo, by="StationID")%>%
+#   select("StationID", "BioRegion", "Gradient")
+# bugenv2<-merge(x=Bugenv, y=Bioregion2, by = "StationID")%>%
+#   select("StationID", "Latitude", "Longitude", "WQM_STA_STRAHER_ORDER", "EPA_ECO_US_L3CODE","EPA_ECO_US_L3NAME",     #"BASINS_HUC_8_NAME","BASINS_VAHU6","WQS_SEC", "WQS_CLASS", "WQS_SPSTDS", "WQS_TROUT",
+# "WQS_TIER_III", "Admin_Region", "Sta_Huc_Code", "Sta_Huc_Sbc_Bsc_Code", "Sta_Huc_Sbc_Code", "Sta_Wqm_Wat_Shed_Code", "Collection.Date", #"Season", "BioRegion", "Gradient")%>%
+#   unique()
+
+###Wait for lucy or emma here....###
+#Bugenv$`Collection Date.x`<-as.Date(as.character(Bugenv$`Collection Date.x`), format="%m/%d/%Y")
+#Bugenv$JulianDate<- yday(Bugenv$`Collection Date.x`)
+Bugenv[sapply(Bugenv, is.character)] <- lapply(Bugenv[sapply(Bugenv, is.character)],as.factor) 
+
+
+```
+
+```{r remove rare taxa, echo=FALSE, message= FALSE}
+
+#Emma's function to remove rare taxa
+
+removeRareTaxa <- function(benthics, # wide tibble of taxa count by station
+                           threshold, # numeric 
+                           groupingFields # vector of all non taxa fields
+){
+
+  taxaMath <- benthics %>% 
+    dplyr::select(-c( !!groupingFields) ) %>% 
+    pivot_longer(cols = everything(), names_to = 'Taxa', values_to = 'Count') %>% 
+    filter(!is.na(Count)) %>% 
+    mutate(Count = ifelse(Count > 0, 1, 0)) %>% 
+    group_by(Taxa) %>% 
+    summarise(Count = sum(Count)) %>% 
+    mutate(Percent = Count / nrow(benthics) * 100)
+  # Separate these for easy reporting to user
+  taxaToKeep <- filter(taxaMath, Percent >= !! threshold) 
+  taxaToDrop <- filter(taxaMath, Percent < !! threshold) 
+  
+  benthicsSlim <- benthics %>% 
+    group_by_at( groupingFields) %>% 
+    pivot_longer(cols = -groupingFields, names_to = 'Taxa', values_to = 'Count') %>% 
+    filter(Taxa %in% taxaToKeep$Taxa) %>% 
+    replace(is.na(.), 0) %>% 
+    mutate(Count = log1p(Count)) %>% 
+    pivot_wider(names_from = Taxa, values_from = Count)
+    
+  return(
+    list(`Taxa Math` = taxaMath,
+         `Taxa Kept` = taxaToKeep,
+         `Taxa Dropped` = taxaToDrop,
+         `Benthics Slim` = benthicsSlim) )
+}
+
+
+
+dataList <- removeRareTaxa(Refbugs, # dataset to analyze, can filter on whatever you want beforehand (e.g. ref, stress, play with ecoregions)
+                           threshold = 5, # drop taxa below 5% occurrence in dataset 
+                           groupingFields = c( "StationID", "BenSampID.x" , "Collection DateTime", "RepNum.x", "Collection.Date")) # fields that you don't want thrown into the math
+# how to view data that comes out of function
+
+datList_noncoast<-removeRareTaxa(Noncoastal, # dataset to analyze, can filter on whatever you want beforehand (e.g. ref, stress, play with ecoregions)
+                           threshold = 5, # drop taxa below 5% occurrence in dataset 
+                           groupingFields = c( "StationID", "BenSampID.x" , "Collection DateTime", "RepNum.x", "Collection.Date")) # fields that you don't want thrown into the math
+# how to view data that comes out of function
+
+# how to view data that comes out of function
+#View(dataList$`Taxa Math`) # taxa occurrence and percent breakdown
+#View(dataList$`Taxa Kept`) # taxa higher or equal to input threshold
+#View(dataList$`Taxa Dropped`) # taxa lower than threshold, dropped from further analyses
+#View(dataList$`Benthics Slim`) # Taxa below threshold removed, individual counts logged
+
+
+NMDSFive<-dataList$`Benthics Slim`
+
+NoncoastalFive<-datList_noncoast$`Benthics Slim`
+
+```
+
+
+
+```{r pressure, echo=FALSE, message = FALSE}
+
+#Removed and log transformed above! 
+
+#bugs[is.na(bugs)]<-0
+
+
+
+bugsnms<-NMDSFive%>%
+  select("StationID", "Collection.Date", 6:119)
+
+bugsnms_noncoast<-NoncoastalFive%>%
+  select("StationID", "Collection.Date", 6:107)
+
+#already logged in JRH data
+###buglog<-log1p(bugsnms[,2:112])
+
+
+bugsnms$site<-1:nrow(bugsnms) 
+
+
+bugsnms_noncoast$site<-1:nrow(bugsnms_noncoast)
+###bugsnms$site<-1:nrow(bugsnms)
+
+
+Site<-bugsnms%>%
+ select("StationID","site","Collection.Date")
+BugNMS<- left_join(bugsnms,Site)%>%
+  select(-c("site"))
+
+Site_noncoast<-bugsnms_noncoast%>%
+ select("StationID","site","Collection.Date")
+BugNMS_noncoast<- left_join(bugsnms_noncoast,Site_noncoast)%>%
+  select(-c("site"))
+
+
+```
+
+
+
+<font size="4"> The first step was to read in the reference site bug taxa list and environmental factors dataset for each station. Join the environmental dataset with the bug dataset to account for multiple observations of each station and collection date and time. 
+
+Check to make sure the bug and environmental join was successful: 
+
+Number of rows in Community Matrix: `r format(nrow(Refbugs))`
+
+Number or rows in Environmental Matrix: `r format(nrow(Bugenv))`
+
+The data was log10+1 transformed. Rare taxa (<=5%) were removed. </font>
+
+
+
+
+
+
+
+
+
+## Run NMDS for reference communities
+
+
+```{r bugnms, echo=FALSE}
+NMDSbug <-metaMDS (NMDSFive[,6:119],k=3, trymax=1000)
+
+
+#Best run is 0.168
+NMDSbug
+
+#Stressplot fo NMDS
+stressplot(NMDSbug)
+
+plot(NMDSbug, "sites")
+
+
+
+samplescores<-as.data.frame(scores(NMDSbug))
+samplescores$StationID<-Site$StationID
+samplescores$Collection.Date<- Site$Collection.Date
+samplescoresenv<-left_join(samplescores, Bugenv, by=c("StationID", "Collection.Date"))
+
+
+
+```
+
+
+
+<font size="4"> Envfit results from Vegan package : 
+
+
+
+```{r envfit, echo=FALSE}
+
+bug.spp.fit <- envfit(NMDSbug, samplescoresenv[ , 7:34], permutations = 999, na.rm=TRUE) 
+
+bug.spp.fit
+
+
+```
+
+
+
+## Plot with Station IDs
+
+
+```{r plot with stations, echo=FALSE, fig.width=12, fig.height=8}
+
+
+species.scores <- as.data.frame(scores(NMDSbug, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+species.scores$species <- rownames(species.scores)
+
+ggplot()+
+  geom_text(data=samplescores,aes(x=NMDS1,y=NMDS2,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores,aes(x=NMDS1,y=NMDS2),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+
+
+
+```
+
+# Plot with Axis 3
+
+
+
+```{r plot with axes 3, echo=FALSE, fig.width=12, fig.height=8}
+
+ggplot()+
+  geom_text(data=samplescores,aes(x=NMDS1,y=NMDS3,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores,aes(x=NMDS1,y=NMDS3),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+ggplot()+
+  geom_text(data=samplescores,aes(x=NMDS2,y=NMDS3,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores,aes(x=NMDS2,y=NMDS3),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+```
+
+
+
+
+
+## Plot with Species
+
+
+```{r plot with species, echo=FALSE, fig.width=12, fig.height=8}
+
+
+#plot (all) with species
+plot(NMDSbug, type = "n")
+points(NMDSbug, display = "sites", cex = 0.8, pch=21, col="red", bg="yellow")
+text(NMDSbug, display = "spec", cex=0.7, col="blue")
+
+
+#samplescores<-as.data.frame(scores(NMDSbug))
+#samplescores$site<-Site$StationID
+
+#species.scores <- as.data.frame(scores(NMDSbug, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+#species.scores$species <- rownames(species.scores)
+
+#ggplot()+
+#  geom_text(data=samplescores,aes(x=NMDS1,y=NMDS2,label=site),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+#  geom_point(data=samplescores,aes(x=NMDS1,y=NMDS2),size=3)+
+#  theme_bw() + 
+#  theme(axis.text.x = element_blank(),  # remove x-axis text
+#        axis.text.y = element_blank(), # remove y-axis text
+#        axis.ticks = element_blank(),  # remove axis ticks
+#        axis.title.x = element_text(size=18), # remove x-axis labels
+#        axis.title.y = element_text(size=18), # remove y-axis labels
+#        panel.background = element_blank(), 
+#        panel.grid.major = element_blank(),  #remove major-grid labels
+#        panel.grid.minor = element_blank(),  #remove minor-grid labels
+#        plot.background = element_blank())
+
+
+
+
+```
+
+## Season 
+
+
+```{r plot Season, echo=FALSE, fig.width=12, fig.height=8}
+
+par(mar = c(4, 4, .1, .1))
+
+Bugenv$Season<- as.factor(Bugenv$Season)
+
+#Season without taxa
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv, aes(colour =Season), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Season")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour =Season), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Season")
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour =Season), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Season")
+
+
+
+Season.mrpp<- mrpp(bugsnms[,6:119], group=samplescoresenv$Season, distance="bray")
+
+Season.mrpp
+
+
+```
+
+
+
+
+
+
+## Season with continuous variable vectors
+
+
+```{r plot Season with vectors, echo=FALSE, fig.width=12, fig.height=8}
+
+
+coord_cont = as.data.frame(scores(bug.spp.fit, "vectors")) * ordiArrowMul(bug.spp.fit)
+vectors<-coord_cont[-c(5,6), ]
+
+#Season without taxa
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv, aes(colour =Season), size = 5, alpha = 0.3) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) +
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Season")
+
+ggplot(data = samplescoresenv, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour =Season), size = 5, alpha = 0.3) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) +
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Season")
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour =Season), size = 5, alpha = 0.3) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) +
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+       data = vectors, size =1, alpha = 0.5, colour = "grey30") +
+     geom_text(data = vectors, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+       fontface = "bold", label = row.names(vectors)) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Season")
+
+
+```
+
+
+
+
+## Ecoregion
+
+```{r plot Ecoregion, echo=FALSE, fig.width=12, fig.height=8}
+
+#Ecoregion
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")
+
+
+Ecoregion.mrpp<- mrpp(bugsnms[,6:119], group= samplescoresenv$US_L3NAME, distance="bray")
+
+Ecoregion.mrpp
+
+```
+
+## Basin 
+
+```{r plot Basin, echo=FALSE, fig.width=12, fig.height=8}
+
+# Basin
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv, aes(colour = Basin_Code ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral", "cadetblue", "chartreuse", "cornflowerblue", "cornsilk4", "darkgrey", "darkorange2", "darkslateblue", "burlywood4", "darkgreen")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Basin")
+
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = Basin_Code ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral", "cadetblue", "chartreuse", "cornflowerblue", "cornsilk4", "darkgrey", "darkorange2", "darkslateblue", "burlywood4", "darkgreen")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Basin")
+
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = Basin_Code ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral", "cadetblue", "chartreuse", "cornflowerblue", "cornsilk4", "darkgrey", "darkorange2", "darkslateblue", "burlywood4", "darkgreen")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Basin")
+
+
+
+
+#Ecoregion.mrpp<- with(Bugenv, mrpp(bugsnms[,2:126], group= US_L3NAME, distance="bray"))
+Basin.mrpp<- mrpp(bugsnms[,6:119], group=samplescoresenv$Basin_Code, distance="bray" )
+
+Basin.mrpp
+
+```
+
+
+
+
+## Admin Region
+
+```{r plot Region, echo=FALSE, fig.width=12, fig.height=8}
+
+#Admin-region
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv, aes(colour = ASSESS_REG ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2")) + 
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "DEQ Regional Office")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = ASSESS_REG ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2")) + 
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "DEQ Regional Office")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = ASSESS_REG ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2")) + 
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "DEQ Regional Office")
+
+
+#Ecoregion.mrpp<- with(Bugenv, mrpp(bugsnms[,2:126], group= US_L3NAME, distance="bray"))
+admin.mrpp<- mrpp(bugsnms[,6:119], group=samplescoresenv$ASSESS_REG, distance="bray" )
+
+admin.mrpp
+
+```
+
+## Sample Method
+```{r plot Sample Method, echo=FALSE, fig.width=12, fig.height=8}
+
+#Method
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv, aes(colour = Gradient ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink")) + 
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Sample Method")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = Gradient ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink")) + 
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Sample Method")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = Gradient ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink")) + 
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Sample Method")
+
+
+Sample.mrpp<-mrpp(bugsnms[,6:119], group=samplescoresenv$Gradient, distance="bray" )
+
+Sample.mrpp
+
+```
+
+
+## BioRegion
+
+```{r plot Bioregion, echo=FALSE, fig.width=12, fig.height=8}
+
+# bioregion
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")
+
+bioregion.mrpp<- mrpp(bugsnms[,6:119], group= samplescoresenv$Bioregion, distance="bray")
+
+bioregion.mrpp
+
+
+
+```
+
+```{r plot Bioregion and season, echo=FALSE, fig.width=12, fig.height=8}
+
+# bioregion
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv, aes(colour = Bioregion, shape=Season), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) +
+  scale_shape_manual(values = c(0, 3, 16))+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion", shape= "Season")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = Bioregion, shape=Season), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) +
+  scale_shape_manual(values = c(0, 3, 16))+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion", shape= "Season")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = Bioregion, shape=Season), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) +
+  scale_shape_manual(values = c(0, 3, 16))+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion", shape= "Season")
+
+
+
+
+```
+
+
+## Stream Order
+
+
+
+```{r plot Stream order, echo=FALSE, fig.width=12, fig.height=8}
+
+#Stream order
+samplescoresenv$Order<-as.character(samplescoresenv$Order)
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")
+
+
+Stream.mrpp<-mrpp(bugsnms[,6:119], group=samplescoresenv$Order, distance="bray" )
+
+Stream.mrpp
+
+```
+
+
+## Water Quality Standard Class
+
+```{r plot Water quality Standard, echo=FALSE, fig.width=12, fig.height=8}
+
+#Water Quality Standard Class
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv, aes(colour = WQS_CLASS), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Water Quality Standard")
+
+ggplot(data = samplescoresenv, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = WQS_CLASS), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Water Quality Standard")
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = WQS_CLASS), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Water Quality Standard")
+
+
+Standard.mrpp<- mrpp(bugsnms[,6:119], samplescoresenv$WQS_CLASS, distance="bray" )
+
+Standard.mrpp
+
+```
+
+
+## Natural Trout Water WQS  
+
+```{r Natural trout water, echo=FALSE, fig.width=12, fig.height=8}
+
+#Water Quality Standard Class
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv, aes(colour = WQS_TROUT), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Trout WQS")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = WQS_TROUT), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Trout WQS")
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv, aes(colour = WQS_TROUT), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Trout WQS")
+
+
+Trout.mrpp<- mrpp(bugsnms[,6:119], samplescoresenv$WQS_TROUT, distance="bray" )
+
+Trout.mrpp
+
+```
+
+
+Based on the observations from the Ecoregion plots, we removed the coastal streams to better assess patterns in the non-coastal streams. The plots in the "Non-Coastal Reference Ordinations" document represent streams within all ecoregions except Mid-Atlantic Coastal Plains and Southeastern Plains ecoregions. 
+
+
+## NMDS Results for Non-Coastal Streams
+
+```{r bugnms noncoastal, echo=FALSE}
+
+NMDSbug_noncoast <-metaMDS (NoncoastalFive[,6:107],k=3, trymax=1000)
+
+#Best run is 0.17
+NMDSbug_noncoast
+
+#Stressplot fo NMDS
+stressplot(NMDSbug_noncoast)
+
+
+#orditorp(NMDSbug,display="sites",cex=1.25,air=0.01)
+plot(NMDSbug_noncoast, "sites")
+
+samplescores_noncoast<-as.data.frame(scores(NMDSbug_noncoast))
+samplescores_noncoast$StationID<-Site_noncoast$StationID
+samplescores_noncoast$Collection.Date<- Site_noncoast$Collection.Date
+samplescoresenv_noncoast<-left_join(samplescores_noncoast, Bugenv, by=c("StationID", "Collection.Date"))
+
+
+#Hmm can't get this to work... 
+#noncoast <- envfit(NMDSbug_noncoast, samplescoresenv_noncoast[ , 7:33] , permutations = 999, na.rm=TRUE) 
+
+```
+
+## Plot with Stations: Non-Coastal
+
+```{r plot with stations noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+
+species.scores_noncoast <- as.data.frame(scores(NMDSbug_noncoast, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+species.scores_noncoast$species <- rownames(species.scores_noncoast)
+
+ggplot()+
+  geom_text(data=samplescores_noncoast,aes(x=NMDS1,y=NMDS2,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores_noncoast,aes(x=NMDS1,y=NMDS2),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+ggplot()+
+  geom_text(data=samplescores_noncoast,aes(x=NMDS2,y=NMDS3,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores_noncoast,aes(x=NMDS2,y=NMDS3),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+
+ggplot()+
+  geom_text(data=samplescores_noncoast,aes(x=NMDS1,y=NMDS3,label=StationID),alpha=0.5, size=3,vjust=1.5,hjust=0.6) +  # add the species labels
+  geom_point(data=samplescores_noncoast,aes(x=NMDS1,y=NMDS3),size=3)+
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+
+```
+
+
+## Season: Non-Coastal
+
+```{r plot Season noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour =Season), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Season")
+
+
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour =Season), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Season")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour =Season), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Season")
+
+
+Season.mrpp.noncoastal<- mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoast$Season, distance="bray")
+
+Season.mrpp.noncoastal
+
+```
+
+
+
+
+## Ecoregion: Non-Coastal
+
+```{r plot Ecoregion noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+#Ecoregion
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = US_L3NAME), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")
+
+
+
+Ecoregion.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], group= samplescoresenv_noncoast$US_L3NAME, distance="bray")
+
+Ecoregion.mrpp.noncoast
+
+```
+
+
+## Basin: Non-Coastal 
+
+```{r plot Basin noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+# Basin
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Basin_Code ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral", "cadetblue", "chartreuse", "cornflowerblue", "cornsilk4", "darkgrey", "darkorange2", "darkslateblue", "burlywood4", "darkgreen")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Basin")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Basin_Code ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral", "cadetblue", "chartreuse", "cornflowerblue", "cornsilk4", "darkgrey", "darkorange2", "darkslateblue", "burlywood4", "darkgreen")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Basin")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Basin_Code ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral", "cadetblue", "chartreuse", "cornflowerblue", "cornsilk4", "darkgrey", "darkorange2", "darkslateblue", "burlywood4", "darkgreen")) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Basin")
+
+
+Basin.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoast$Basin_Code, distance="bray" )
+
+Basin.mrpp.noncoast
+
+```
+
+
+## Admin Region: Non-Coastal
+
+```{r plot Region noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+#Admin-region
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = ASSESS_REG ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2")) + 
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "DEQ Regional Office")
+
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = ASSESS_REG ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2")) + 
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "DEQ Regional Office")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = ASSESS_REG ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2")) + 
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "DEQ Regional Office")
+
+
+
+
+
+admin.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoast$ASSESS_REG, distance="bray" )
+
+admin.mrpp.noncoast
+
+```
+
+
+
+##Bioregion: Non-Coastal
+
+```{r plot bioregion noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")
+
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.16", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion")
+
+
+bioregion.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoast$Bioregion, distance="bray" )
+
+bioregion.mrpp.noncoast
+
+```
+
+```{r plot bioregion and season noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Bioregion, shape=Season), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) +
+  scale_shape_manual(values = c(0, 3, 16))+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion", shape= "Season")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Bioregion, shape=Season), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) +
+  scale_shape_manual(values = c(0, 3, 16))+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion", shape= "Season")
+
+
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Bioregion, shape=Season), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "bisque","darkorchid2" )) +
+  scale_shape_manual(values = c(0, 3, 16))+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Bioregion", shape= "Season")
+
+
+
+```
+
+
+
+## Sample Method: Non-Coastal
+```{r plot Sample Method noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+#Method
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Gradient ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink")) + 
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Sample Method")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Gradient ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink")) + 
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Sample Method")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Gradient ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink")) + 
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Sample Method")
+
+
+
+Sample.mrpp.noncoast<-mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoast$Gradient, distance="bray" )
+
+Sample.mrpp.noncoast
+
+```
+
+
+## Stream Order: Non-Coastal
+
+```{r plot Stream order noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+#Stream order
+samplescoresenv_noncoast$Order<-as.character(samplescoresenv_noncoast$Order)
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = Order), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream Order")
+
+
+
+Stream.mrpp.noncoast<-mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoast$Order, distance="bray" )
+
+Stream.mrpp.noncoast
+
+```
+
+## Water Quality Standard Class: Non-Coastal
+
+```{r plot Water quality Standard noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+#Water Quality Standard Class
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = WQS_CLASS), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Water Quality Standard")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = WQS_CLASS), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Water Quality Standard")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = WQS_CLASS), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Water Quality Standard")
+
+
+
+
+Standard.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], samplescoresenv_noncoast$WQS_CLASS, distance="bray" )
+
+Standard.mrpp.noncoast
+
+```
+
+
+## Natural Trout Water WQS: Non-Coastal
+
+```{r Natural trout water noncoastal, echo=FALSE, fig.width=12, fig.height=8}
+
+#Water Quality Standard Class
+
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = WQS_TROUT), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Trout WQS")
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS2, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = WQS_TROUT), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Trout WQS")
+
+
+ggplot(data = samplescoresenv_noncoast, aes(x = NMDS1, y = NMDS3)) + 
+     geom_point(data = samplescoresenv_noncoast, aes(colour = WQS_TROUT), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink" )) + 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Trout WQS")
+
+````

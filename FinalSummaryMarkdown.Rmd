@@ -1,0 +1,1216 @@
+---
+title: "Reference Stream Nonmetric Multidimensional Scaling Ordination Summary"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: default
+  word_document: default
+always_allow_html: yes
+
+---
+
+<!-- <style type="text/css"> -->
+
+<!-- body, td { -->
+<!--    font-size: 16px; -->
+<!--  } -->
+<!--  code.r{ -->
+<!--    font-size: 16px; -->
+<!--    font-family: times -->
+<!--  } -->
+<!--  pre { -->
+<!--    font-size: 16px -->
+<!--  } -->
+<!--  </style> -->
+
+
+
+<!-- <script> -->
+<!--    $(document).ready(function() { -->
+<!--      $head = $('#header'); -->
+<!--      $head.prepend('<img src=\"Logo.jpg\" style=\"float: right;width: 150px;\"/>') -->
+<!--    }); -->
+<!-- </script> -->
+
+
+```{r setup, include=FALSE}
+
+#R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+#Copyright (C) 2020 The R Foundation for Statistical Computing
+#Platform: x86_64-w64-mingw32/x64 (64-bit)
+#knitr::opts_chunk$set(echo = TRUE)
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+
+library(vegan)
+library(dplyr)
+library(lubridate)
+library(purrr) 
+library(ggplot2)
+library(readxl)
+library(tidyr)
+library(DT)
+library(data.table)
+library(cluster)
+library(car)
+library(sp)
+library(htmltools)
+# Set working directory
+
+
+
+```
+
+
+
+
+
+```{r Load in Data, include=FALSE}
+
+
+bugs <- read.csv('data//benthicsVA_WVA_taxaexcluded.csv')
+
+bugs$Collection.Date<-as.Date(bugs$Collection.Date, format="%m/%d/%Y")
+
+
+Stressed <- read.csv('data//envDataVA_WVA.csv')%>%
+  filter(JRH_Final_Ref_Cod=="Str")
+
+Refpied <- read.csv('data//envDataVA_WVA.csv')%>%
+  filter(JRH_Final_Ref_Cod=="Ref-Pied")
+
+Refn <- read.csv('data//envDataVA_WVA.csv')%>%
+  filter(JRH_Final_Ref_Cod=="Ref")
+
+WVA<- read.csv('data//envDataVA_WVA.csv')%>%
+  filter(JRH_Final_Ref_Cod == "WVA")
+  
+Intermediate<-read.csv('data//envDataVA_WVA.csv')%>%
+  filter(JRH_Final_Ref_Cod== "Int")
+  
+
+
+env <- read.csv('data//envDataVA_WVA.csv')%>%
+  subset(`JRH_Final_Ref_Cod` == "Ref-Pied" | `JRH_Final_Ref_Cod` == "Ref" | `JRH_Final_Ref_Cod`== "WVA")%>%
+  subset(Season !="Outside Sample Window")
+
+
+env$`Collection.Date`<-as.Date(env$`Collection.Date`, format="%m/%d/%Y")
+
+bioregion <- function(x) { 
+if(x == 67 | x == 69 | x== 66) y <- "Mountain"
+if(x  == 63 | x == 65 ) y <- "Coast"
+if(x == 64 | x== 45) y <- "Piedmont"
+return(y)
+}
+
+env$Bioregion<-sapply(env$US_L3CODE, bioregion)
+
+Env_noncoast<-env%>%
+  subset(`US_L3NAME`!="Middle Atlantic Coastal Plain")%>%
+  subset(`US_L3NAME`!="Southeastern Plains")
+
+ Env_coast<-env%>%
+     subset(`US_L3NAME`=="Middle Atlantic Coastal Plain" | `US_L3NAME`==  "Southeastern Plains")
+ 
+
+   
+Refbugs_coast <-left_join(bugs,Env_coast, by=c("StationID", "Collection.Date"))%>%
+  subset(`JRH_Final_Ref_Cod`=="Ref"| 'JRH_Final_Ref_Cod'=="Ref-Pied" | 'JRH_Final_Ref_Cod'== "WVA")%>%
+  subset(Season != "Outside Sample Window")
+
+
+   
+Refbugs <-left_join(bugs,Env_noncoast, by=c("StationID", "Collection.Date"))%>%
+  subset(`JRH_Final_Ref_Cod` == "Ref-Pied" | `JRH_Final_Ref_Cod` == "Ref" | `JRH_Final_Ref_Cod`== "WVA")%>%
+  subset(Season !="Outside Sample Window")
+
+
+Noncoastal<-unique(Refbugs[ , 3:414 ])
+
+AllRefbugs<-left_join(bugs, env, by=c("StationID", "Collection.Date"))%>%
+  subset(`JRH_Final_Ref_Cod` == "Ref-Pied" | `JRH_Final_Ref_Cod` == "Ref" | `JRH_Final_Ref_Cod`== "WVA")%>%
+  subset(Season !="Outside Sample Window")
+
+AllRefbugs<-unique(AllRefbugs[, 3:416])
+
+coastal <-Refbugs_coast%>%
+  subset(`US_L3NAME` == "Middle Atlantic Coastal Plain"| `US_L3NAME`=="Southeastern Plains")
+
+coastal<-unique(coastal[ , 3:412])
+
+
+Springbugs<-subset(Refbugs, `Season`=="Spring")%>%
+  unique()
+Springbugs2<-Springbugs[ , 3:412]
+
+
+Fallbugs<-subset(Refbugs, `Season`=="Fall")%>%
+  unique()
+Fallbugs2<-Fallbugs[ , 3:412]
+
+
+Bugenv<-left_join(env, AllRefbugs, by=c("StationID", "Collection.Date"))%>%
+  select("StationID", "Year", "JulianDate", "Latitude", "Longitude", "Collection.Date", "Season" , "Gradient", "Coastal", "US_L3CODE", "US_L3NAME", "US_L4NAME", "ASSESS_REG", "Tidal", "VAHUSB", "Basin", "Basin_Code", "CountyCityName", "WQS_CLASS", "WQS_SPSTDS", "WQS_PWS", "WQS_TROUT", "WQS_TIER_III", "Order","EDASOrder", "totalArea_sqMile", "ELEVMEAN", "SLPMEAN", "wshdRain_mmyr", "siteRain_mmyr", "Bioregion" )
+
+
+
+Env_noncoast_2<-read.csv("data//ReferencePied_WVA_env_noncoast.csv")%>%
+  subset(Season!="Outside Sample Window")
+Env_noncoast_2$`Collection.Date`<-as.Date(Env_noncoast_2$`Collection.Date`, format="%m/%d/%Y")
+
+
+Bugenv_noncoastal<-left_join(Env_noncoast_2, Noncoastal, by=c("StationID", "Collection.Date"))%>%
+  select("StationID", "JRH_Final_Ref_Cod", "Year", "JulianDate", "Latitude", "Longitude", "Collection.Date", "Season" , "Gradient", "Coastal", "US_L3CODE", "US_L3NAME", "US_L4NAME", "ASSESS_REG", "Tidal", "VAHUSB", "Basin", "Basin_Code", "CountyCityName", "WQS_CLASS", "WQS_SPSTDS", "WQS_PWS", "WQS_TROUT", "WQS_TIER_III", "Order","EDASOrder", "totalArea_sqMile", "ELEVMEAN", "SLPMEAN", "wshdRain_mmyr", "siteRain_mmyr", "Bioregion", "StreamCate", "Bioregionsize", "BioregionSeason" )
+
+
+Env_coast_2<-read.csv("data//Referenceenv_coast.csv")%>%
+  subset(Season != "Outside Sample Window")
+
+Env_coast_2$`Collection.Date`<-as.Date(Env_coast_2$`Collection.Date`, format="%m/%d/%Y")
+
+##Figure out how to join - removed collection date for now- LS had to remove bioregion
+
+Bugenv_coast<-left_join(Env_coast_2, coastal, by=c("StationID", "Collection.Date"))%>%
+  select("StationID", "Year", "JulianDate", "Latitude", "Longitude", "Collection.Date", "Season" , "Gradient", "Coastal", "US_L3CODE", "US_L3NAME", "US_L4NAME", "ASSESS_REG", "Tidal", "VAHUSB", "Basin", "Basin_Code", "CountyCityName", "WQS_CLASS", "WQS_SPSTDS", "WQS_PWS", "WQS_TROUT", "WQS_TIER_III", "Order","EDASOrder", "totalArea_sqMile", "ELEVMEAN", "SLPMEAN", "wshdRain_mmyr", "siteRain_mmyr", "Bioregion", "StreamCate", "Bioregionsize", "BioregionSeason" )
+
+Bugenv_spring<-left_join(Env_noncoast_2, Springbugs2, by=c("StationID", "Collection.Date"))%>%
+  select("StationID",  "Year", "JulianDate", "Latitude", "Longitude", "Collection.Date", "Season" , "Gradient", "Coastal", "US_L3CODE", "US_L3NAME", "US_L4NAME", "ASSESS_REG", "Tidal", "VAHUSB", "Basin", "Basin_Code", "CountyCityName", "WQS_CLASS", "WQS_SPSTDS", "WQS_PWS", "WQS_TROUT", "WQS_TIER_III", "Order","EDASOrder", "totalArea_sqMile", "ELEVMEAN", "SLPMEAN", "wshdRain_mmyr", "siteRain_mmyr" , "Bioregion", "StreamCate")%>%
+
+  subset(`Season`=="Spring")%>%
+  unique()
+
+
+Bugenv_Fall<-left_join(Env_noncoast_2, bugs, by=c("StationID", "Collection.Date"))%>%
+  select("StationID", "Year", "JulianDate", "Latitude", "Longitude", "Collection.Date", "Season" , "Gradient", "Coastal", "US_L3CODE", "US_L3NAME", "US_L4NAME", "ASSESS_REG", "Tidal", "VAHUSB", "Basin", "Basin_Code", "CountyCityName", "WQS_CLASS", "WQS_SPSTDS", "WQS_PWS", "WQS_TROUT", "WQS_TIER_III", "Order","EDASOrder", "totalArea_sqMile", "ELEVMEAN", "SLPMEAN", "wshdRain_mmyr", "siteRain_mmyr", "Bioregion", "StreamCate" )%>%
+
+  subset(`Season`=="Fall")%>%
+  unique()
+
+```
+
+## Introduction
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Benthic macroinvertebrate communities show structural and functional differences depending on natural landscape or stream characteristics such as stream size, geology, climate, and elevation (Vannote et al. 1980; Dodds et al., 2015; Cushing et al., 2006). These landscape differences determine the water chemistry, food resources and habitat available for macroinvertebrates. Certain taxa are uniquely adapted to withstand conditions that occur across landscapes naturally, such as organisms that are adapted to cold water or have physical properties to protect them from abrasion in sandier habitats (Poff et al., 2006). In the absence of extreme human modifications, geology, topography, climate, and stream size result in somewhat predictable macroinvertebrate communities that reflect natural disturbance regimes (Dodds et al., 2015; Poff et al., 2006). While considering variation across benthic communities that could be attributed to stress, it is important to understand and recognize the biotic differences that occur naturally. 
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;One method to identify which natural landscape and stream characteristics are having a measurable effect on the organisms found in a macroinvertebrate community is to use multivariate statistical techniques such as Non-metric Multidimensional Scaling (NMS) (McCune and Grace, 2002). Reference taxa data can be graphically reviewed using Non-metric Multidimensional Scaling (NMS) ordination and statistically explored for differences using the Multiple Response Permutation Procedure (MRPP) (McCune and Grace, 2002). By overlaying the stations natural landscape or stream characteristics, the patterns that may be associated with differences in natural characteristics emerge. 
+
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Identifying the important natural landscape and stream characteristics to a biotic community is an essential first step for metric selection and Index of Biotic Integrity (IBI) development. If benthic communities are variable due to natural characteristics, then associating biological communities with specific stressors will be inaccurate. The Virginia Department of Environmental Quality is undertaking the development of a genus-level IBI to replace the family level Virginia Stream Condition Index (TetraTech, 2003; VDEQ, 2006). Virginia has a wide variety of topographic and geologic characteristics and includes both mountainous and coastal streams. Within Virginia there are seven Level 3 ecoregions and three coarser physiographic regions (called bioregions herein). Three IBI’s were developed and are currently being used for the family level metrics, including a non-coastal metric (VSCI), coastal for ecoregion 65 (Virginia Coastal Plain Macroinvertebrate Index (VCPMI) - Chowan), and coastal for ecoregion 63 (VCPMI + Chowan)(VDEQ, 2013). As a first step in genus metric development, VADEQ performed a series of NMS for reference benthic communities to identify clusters that could be attributed to natural landscape characteristics and may require individual metric development. 
+
+## Methods 
+
+### Study Design
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Reference stations were identified using a series of landscape and water quality filters including VSCI scores that were above the impairment threshold. Across Virginia and part of West Virginia (Central Applications Ecoregion), 1045 stations were identified as reference stations after evaluation from the regional biologists (Ref stress Map-https://rconnect.deq.virginia.gov/RefStressMap/). Some of West Virginia reference data was used to increase the number of stations located in the Central Appalachians ecoregion. The macroinvertebrate collection, sorting, and identification methods used are similar to Virginia; therefore, it was deemed that this data was appropriate for usage. The dataset resulted in `r format(nrow(Stressed))`  stressed samples (n Sites= `r format(sum(!duplicated(Stressed$StationID)))`), `r format(nrow (Intermediate))` intermediately stressed samples (n sites=`r format(sum(!duplicated(Intermediate$StationID)))`), `r format(nrow (Refn))` Reference samples (n sites=`r format(sum(!duplicated(Refn$StationID)))` ), `r format(nrow (Refpied))` Reference Piedmont samples (n sites=`r format(sum(!duplicated(Refpied$StationID)))`), and  `r format(nrow (WVA))` Reference West Virginia samples (n sites= `r format(sum(!duplicated(WVA$StationID)))`). Reference, Reference Piedmont and West Virginia samples were all used in the analysis below.  
+
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A macroinvertebrate community abundance matrix was created from the reference stations identified. All taxa denoted as excluded by the biologists during identification were not used in this evaluation. Taxa that were identified to Order were excluded from the matrix to reduce noise in the dataset. If stations appeared in the dataset more than 4 times, then the most recent four samples were used and the remaining data was removed. Any samples that had less than 100 total taxa in a sample were also removed. Taxa that occurred in the dataset less than or equal to 5% of the time were removed from the dataset to eliminate rare taxa. All abundance data was then log_10+1 transformed for use in the ordinations.      
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A small review group was formed of EPA and VADEQ experts in IBI development to review and provide input on the metric development process. Based on feedback from the group, iterations of the NMS technique were conducted to evaluate the removal of 1%, 3%, and 10% of rare taxa and the removal of *Chironomidae*, which were ubiquitous in all samples. The suggested changes did not appear to significantly change the outcome of the NMS ordinations; therefore they are not included in the results section below. 
+
+
+### Statistical Analysis 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Non-metric Multiple Dimensional Scaling (NMS) was used to examine the reference dataset for patterns associated with landscape or stream characteristics. This ordination technique plots macroinvertebrate community abundance data in 3-D space to identify if certain station's communities cluster together in a non-random way. Distances among samples were calculated using a Bray-Curtis Dissimilarity distance. Rather than plotting on just two axes (x and y), NMS allows the user to specify the number of dimensions, allowing the user to see more refined clustering graphically. We evaluated 3 axes; however, axes 1 and 2 accounted for the most variation and are shown throughout this document. NMS will iteratively seek the best solution for the dataset and stop once it has found the best solution or at a pre-determined number of iterations. The best solution is considered when the stress value is at its lowest. To evaluate the strength of the NMS stress, we used Clarke's method that states if the stress is at or above 0.20 then the fit is not different than a random ordination. Stress below 0.20 is considered different than random and provides an ordination where inferences can be drawn (McCune and Grace 2002- Chapter 16). 
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Multiple Response Permutation Procedure (MRPP) provides a test to determine if there is a significant difference between two or more groups. This is a non-parametric test and is similar to tests like the Analysis of Variance (ANOVA) (Biodini et al., 1988). Bray Curtis distance was used for this statistical test. The test statistic, *A* describes the within-group similarity compared to a random expectation. Within community ecology data, a test statistic of greater than 0.3 is considered fairly high and indicates that groups are considered different from one another (McCune & Grace, 2002). An *A* statistic of 1 indicates that all within group communities are identical. The NMS ordinations and MRPP were conducted in R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out" using the vegan package (version 2.5-7).
+ 
+
+
+
+
+
+
+```{r remove rare taxa, echo=FALSE, message= FALSE}
+
+#Emma's function to remove rare taxa
+
+removeRareTaxa <- function(benthics, # wide tibble of taxa count by station
+                           threshold, # numeric 
+                           groupingFields # vector of all non taxa fields
+){
+
+  taxaMath <- benthics %>% 
+    dplyr::select(-c( !!groupingFields) ) %>% 
+    pivot_longer(cols = everything(), names_to = 'Taxa', values_to = 'Count') %>% 
+    filter(!is.na(Count)) %>% 
+    mutate(Count = ifelse(Count > 0, 1, 0)) %>% 
+    group_by(Taxa) %>% 
+    summarise(Count = sum(Count)) %>% 
+    mutate(Percent = Count / nrow(benthics) * 100)
+  # Separate these for easy reporting to user
+  taxaToKeep <- filter(taxaMath, Percent >= !! threshold) 
+  taxaToDrop <- filter(taxaMath, Percent < !! threshold) 
+  
+  benthicsSlim <- benthics %>% 
+    group_by_at( groupingFields) %>% 
+    pivot_longer(cols = -groupingFields, names_to = 'Taxa', values_to = 'Count') %>% 
+    filter(Taxa %in% taxaToKeep$Taxa) %>% 
+    replace(is.na(.), 0) %>% 
+    mutate(Count = log1p(Count)) %>% 
+    pivot_wider(names_from = Taxa, values_from = Count)
+    
+  return(
+    list(`Taxa Math` = taxaMath,
+         `Taxa Kept` = taxaToKeep,
+         `Taxa Dropped` = taxaToDrop,
+         `Benthics Slim` = benthicsSlim) )
+}
+
+
+
+dataList_All <- removeRareTaxa(AllRefbugs, # dataset to analyze, can filter on whatever you want beforehand (e.g. ref, stress, play with ecoregions)
+                           threshold = 5, # drop taxa below 5% occurrence in dataset 
+                           groupingFields = c( "StationID", "BenSampID.x" , "Collection.Date", "Collection.DateTime", "RepNum.x")) # fields that you don't want thrown into the math
+# how to view data that comes out of function
+
+
+datList_noncoast<-removeRareTaxa(Noncoastal, # dataset to analyze, can filter on whatever you want beforehand (e.g. ref, stress, play with ecoregions)
+                           threshold = 5, # drop taxa below 5% occurrence in dataset 
+                           groupingFields = c( "StationID", "BenSampID.x" , "Collection.DateTime", "RepNum.x", "Collection.Date")) # fields that you don't want thrown into the math
+
+datList_coast<-removeRareTaxa(coastal, # dataset to analyze, can filter on whatever you want beforehand (e.g. ref, stress, play with ecoregions)
+                           threshold = 5, # drop taxa below 5% occurrence in dataset 
+                           groupingFields = c( "StationID", "BenSampID.x" , "Collection.DateTime", "RepNum.x", "Collection.Date")) # fields that you don't want thrown into the math
+# how to view data that comes out of function
+coastalFive<-datList_coast$`Benthics Slim`
+
+NMDSFive_all<-dataList_All$`Benthics Slim`
+
+NoncoastalFive<-datList_noncoast$`Benthics Slim`
+
+dataList_Spring <- removeRareTaxa(Springbugs2, # dataset to analyze, can filter on whatever you want beforehand (e.g. ref, stress, play with ecoregions)
+                           threshold = 5, # drop taxa below 5% occurrence in dataset 
+                           groupingFields = c("StationID", "BenSampID.x" , "Collection.DateTime", "RepNum.x", "Collection.Date")) # fields that you don't want thrown into the math
+
+
+dataList_Fall <- removeRareTaxa(Fallbugs2, # dataset to analyze, can filter on whatever you want beforehand (e.g. ref, stress, play with ecoregions)
+                           threshold = 5, # drop taxa below 5% occurrence in dataset 
+                           groupingFields = c( "StationID", "BenSampID.x" , "Collection.DateTime", "RepNum.x", "Collection.Date")) # fields that you don't want thrown into the math
+
+
+
+SpringNMDSFive<-dataList_Spring$`Benthics Slim`
+FallNMDSFive<-dataList_Fall$`Benthics Slim`
+
+
+```
+
+
+
+```{r nms, echo=FALSE, message = FALSE, include=FALSE}
+
+#Removed and log transformed above! 
+
+#bugs[is.na(bugs)]<-0
+
+
+bugsnms<-NMDSFive_all%>%
+  select("StationID", "Collection.Date", 6:119)
+
+bugsnms_noncoast<-NoncoastalFive%>%
+  select("StationID", "Collection.Date", 6:107)
+# 
+bugsnms$site<-1:nrow(bugsnms) 
+# 
+ 
+bugsnms_noncoast$site<-1:nrow(bugsnms_noncoast)
+
+# 
+Site<-bugsnms%>%
+select("StationID","site","Collection.Date")
+BugNMS<- left_join(bugsnms,Site)%>%
+  select(-c("site"))
+# 
+Site_noncoast<-bugsnms_noncoast%>%
+ select("StationID","site","Collection.Date")
+
+##Run NMS
+
+BugNMS_noncoast<- left_join(bugsnms_noncoast,Site_noncoast)%>%
+  select(-c("site"))
+
+NMDSbug<-metaMDS (NMDSFive_all[,6:119],k=3, trymax=1000)
+
+
+#Best run is 0.166
+
+
+samplescores<-as.data.frame(scores(NMDSbug, display="site"))
+samplescores$StationID<-Site$StationID
+samplescores$Collection.Date<- Site$Collection.Date
+samplescoresenv<-left_join(samplescores, Bugenv, by=c("StationID", "Collection.Date")) 
+
+samplescoresenv<- samplescoresenv %>% 
+  # do this as a separate step and join back in so you don't summarize much
+  left_join(samplescoresenv %>% 
+              group_by(Bioregion) %>% 
+              summarize(BioN = n()),
+            by = "Bioregion") %>% 
+  left_join(samplescoresenv %>% 
+              group_by(US_L3NAME) %>% 
+              summarize(EcoN = n()),
+            by = "US_L3NAME") %>% 
+  
+
+  mutate(`Bioregion (n)` = paste0(Bioregion, " (n = ", BioN, ")"),
+         `Ecoregion (n)` = paste0(US_L3NAME, " (n = ", EcoN, ")"))
+    
+  
+
+
+
+
+
+NMDSbug_noncoastal<-metaMDS (NoncoastalFive[,6:107],k=3, trymax=1000)
+
+
+#Best run is 0.17
+
+
+
+
+samplescores_noncoastal<-as.data.frame(scores(NMDSbug_noncoastal, display="site"))
+samplescores_noncoastal$StationID<-Site_noncoast$StationID
+samplescores_noncoastal$Collection.Date<- Site_noncoast$Collection.Date
+samplescoresenv_noncoastal<-left_join(samplescores_noncoastal, Bugenv_noncoastal, by=c("StationID", "Collection.Date"))
+
+samplescoresenv_noncoastal<- samplescoresenv_noncoastal %>% 
+  # do this as a separate step and join back in so you don't summarize much
+  left_join(samplescoresenv_noncoastal %>% 
+              group_by(Bioregion) %>% 
+              summarize(BioN = n()),
+            by = "Bioregion") %>% 
+  left_join(samplescoresenv_noncoastal %>% 
+              group_by(US_L3NAME) %>% 
+              summarize(EcoN = n()),
+            by = "US_L3NAME") %>% 
+  
+  left_join(samplescoresenv_noncoastal %>% 
+              group_by(ASSESS_REG) %>% 
+              summarize(AssesN = n()),
+            by = "ASSESS_REG") %>%
+
+    left_join(samplescoresenv_noncoastal %>% 
+              group_by(Basin_Code) %>% 
+              summarize(BasinN = n()),
+            by = "Basin_Code") %>%
+      left_join(samplescoresenv_noncoastal %>% 
+              group_by(Gradient) %>% 
+              summarize(GradientN = n()),
+            by = "Gradient") %>%
+  left_join(samplescoresenv_noncoastal %>% 
+              group_by(WQS_CLASS) %>% 
+              summarize(WQSN = n()),
+            by = "WQS_CLASS") %>%
+    left_join(samplescoresenv_noncoastal %>% 
+              group_by(WQS_TROUT) %>% 
+              summarize(TroutN = n()),
+            by = "WQS_TROUT") %>%
+      left_join(samplescoresenv_noncoastal %>% 
+              group_by(Season) %>% 
+              summarize(SeasonN = n()),
+            by = "Season") %>%
+        left_join(samplescoresenv_noncoastal %>% 
+              group_by(StreamCate) %>% 
+              summarize(StreamcateN = n()),
+            by = "StreamCate") %>%
+          left_join(samplescoresenv_noncoastal %>% 
+              group_by(BioregionSeason) %>% 
+              summarize(bioregionseasonN = n()),
+            by = "BioregionSeason") %>%
+  mutate(`Bioregion (n)` = paste0(Bioregion, " (n = ", BioN, ")"),
+         `Ecoregion (n)` = paste0(US_L3NAME, " (n = ", EcoN, ")"),
+         `Assessment Region (n)` = paste0(ASSESS_REG, " (n = ", AssesN, ")"),
+         `Basin (n)` = paste0(Basin_Code, " (n = ", BasinN, ")"),
+         `Gradient (n)` = paste0(Gradient, " (n = ", GradientN, ")"),
+         `WQS (n)` = paste0(WQS_CLASS, " (n = ", WQSN, ")"),
+         `Trout WQS (n)` = paste0(WQS_TROUT, " (n = ", TroutN, ")"),
+         `Season (n)` = paste0(Season, " (n = ", SeasonN, ")"),
+         `Stream Category (n)` = paste0(StreamCate, " (n = ", StreamcateN, ")"),
+         `Bioregion, Stream Size, Season (n)` = paste0(BioregionSeason, " (n = ", bioregionseasonN, ")")
+         
+         
+         )
+
+
+#Coastal Streams NMS- best run 0.19
+
+bugsnms_coast<-coastalFive%>%
+  select("StationID", "Collection.Date", 6:107)
+
+
+bugsnms_coast$site<-1:nrow(bugsnms_coast)
+
+
+Site_coast<-bugsnms_coast%>%
+ select("StationID","site","Collection.Date")
+BugNMS_coast<- left_join(bugsnms_coast,Site_coast)%>%
+  select(-c("site"))
+NMDSbug_coast <-metaMDS (coastalFive[,6:107],k=3, trymax=1000)
+
+samplescores_coast<-as.data.frame(scores(NMDSbug_coast, display="site"))
+samplescores_coast$StationID<-Site_coast$StationID
+samplescores_coast$Collection.Date<- Site_coast$Collection.Date
+samplescoresenv_coast<-left_join(samplescores_coast, Bugenv_coast, by=c("StationID", "Collection.Date"))
+
+samplescoresenv_coast<- samplescoresenv_coast %>% 
+  # do this as a separate step and join back in so you don't summarize much
+  left_join(samplescoresenv_coast %>% 
+              group_by(Bioregion) %>% 
+              summarize(BioN = n()),
+            by = "Bioregion") %>% 
+  left_join(samplescoresenv_coast %>% 
+              group_by(US_L3NAME) %>% 
+              summarize(EcoN = n()),
+            by = "US_L3NAME") %>% 
+    left_join(samplescoresenv_coast %>% 
+              group_by(Basin) %>% 
+              summarize(BasinN = n()),
+            by = "Basin") %>%
+    left_join(samplescoresenv_coast %>% 
+              group_by(Season) %>% 
+              summarize(SeasN = n()),
+            by = "Season") %>%
+
+  mutate(`Bioregion (n)` = paste0(Bioregion, " (n = ", BioN, ")"),
+         `Ecoregion (n)` = paste0(US_L3NAME, " (n = ", EcoN, ")"),
+         `Basin (n)` = paste0(Basin, " (n = ", BasinN, ")"),
+         `Season (n)` = paste0(Season, " (n = ", SeasN, ")"))
+
+
+
+
+
+#Season NMS
+bugsnms_Spring<-SpringNMDSFive%>%
+  select("StationID", 6:100)
+
+bugsnms_Fall<-FallNMDSFive%>%
+  select("StationID", 6:107)
+
+
+bugsnms_Spring$site<-1:nrow(bugsnms_Spring)
+
+bugsnms_Fall$site<-1:nrow(bugsnms_Fall) 
+
+Site_spring<-bugsnms_Spring%>%
+ select("StationID","site")
+BugNMS_spring<- left_join(bugsnms_Spring,Site_spring)%>%
+  select(-c("site"))
+
+Site_fall<-bugsnms_Fall%>%
+ select("StationID","site")
+BugNMS_Fall<- left_join(bugsnms_Fall,Site_fall)%>%
+  select(-c("site"))
+
+
+NMDSbug_spring <-metaMDS (SpringNMDSFive[,6:107],k=3, trymax=1000)
+
+#Best run spring is 0.167
+
+samplescores_Spring<-as.data.frame(scores(NMDSbug_spring, display="site"))
+
+samplescores_Spring$StationID<-Site_spring$StationID
+
+samplescores_Spring$Collection.Date<- Site_spring$Collection.Date
+
+samplescoresenv_Spring<-left_join(samplescores_Spring, Bugenv_spring, by=c("StationID", "Collection.Date"))
+
+samplescoresenv_Spring<- samplescoresenv_Spring %>% 
+  # do this as a separate step and join back in so you don't summarize much
+  left_join(samplescoresenv_Spring %>% 
+              group_by(Bioregion) %>% 
+              summarize(BioN = n()),
+            by = "Bioregion") %>% 
+  left_join(samplescoresenv_Spring %>% 
+              group_by(US_L3NAME) %>% 
+              summarize(EcoN = n()),
+            by = "US_L3NAME") %>% 
+  left_join(samplescoresenv_Spring %>% 
+              group_by(StreamCate) %>% 
+              summarize(StreamcateN = n()),
+            by = "StreamCate") %>%
+
+  mutate(`Bioregion (n)` = paste0(Bioregion, " (n = ", BioN, ")"),
+         `Ecoregion (n)` = paste0(US_L3NAME, " (n = ", EcoN, ")"),
+          `Stream Category (n)` = paste0(StreamCate, " (n = ", StreamcateN, ")")
+  )
+
+
+
+
+
+NMDSbug_fall<-metaMDS (FallNMDSFive[,6:111],k=3, trymax=1000)
+
+#Best run Fall is 0.176
+
+
+samplescores_Fall<-as.data.frame(scores(NMDSbug_fall, display="site"))
+samplescores_Fall$Collection.Date<- Site_fall$Collection.Date
+samplescores_Fall$StationID<-Site_fall$StationID
+
+samplescoresenv_Fall<-left_join(samplescores_Fall, Bugenv_Fall, by=c("StationID", "Collection.Date"))
+
+samplescoresenv_Fall<- samplescoresenv_Fall %>% 
+  # do this as a separate step and join back in so you don't summarize much
+  left_join(samplescoresenv_Fall %>% 
+              group_by(Bioregion) %>% 
+              summarize(BioN = n()),
+            by = "Bioregion") %>% 
+  left_join(samplescoresenv_Fall %>% 
+              group_by(US_L3NAME) %>% 
+              summarize(EcoN = n()),
+            by = "US_L3NAME") %>% 
+  left_join(samplescoresenv_Fall %>% 
+              group_by(StreamCate) %>% 
+              summarize(StreamcateN = n()),
+            by = "StreamCate") %>%
+
+  mutate(`Bioregion (n)` = paste0(Bioregion, " (n = ", BioN, ")"),
+         `Ecoregion (n)` = paste0(US_L3NAME, " (n = ", EcoN, ")"),
+          `Stream Category (n)` = paste0(StreamCate, " (n = ", StreamcateN, ")")
+  )
+
+
+
+```
+
+## Results
+
+### All Reference data
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The results of the initial NMS ordinations using all reference data indicated that several landscape and stream characteristics did not demonstrate a difference in benthic macroinvertebrate communities. These characteristics include season, sample method, and trout waters (Table 1, *A*<0.07).  
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The NMDS and MRPP results did, however, indicated that there are differences in benthic reference communities based on Bioregion and Ecoregion. The Coastal bioregion visibly separated from the Piedmont and Mountain bioregions and the Mid-Atlantic Coastal Plain and Southeastern Piedmont ecoregions were distinct from the other ecoregions (Figure 1 and 2).This relationship was evidenced by the MRRP analysis that showed relatively high *A*-statistics for these parameters (Bioregion= 0.0714 and Ecoregion=0.0970).Other *A* -statistics that were relatively high were likely correlated with bioregion and do not represent a meaningful difference in biological communities (Admin Region, Sample Method, Water Quality Standards). Because of the observed differences in benthic communities in Coastal and non-coastal systems the decision was made to separate the coastal and non-coastal systems for further ordination analyses. This decision is supported by biologists' observations and expert group panel discussions and is consistent with the development of Virginia's family level IBI (VDEQ, 2013). 
+
+
+
+
+```{r plot Bioregion, echo=FALSE, fig.width=12, fig.height=8, fig.cap= "Figure 1: Bioregion displayed on NMDS with all reference sites"}
+
+# bioregion
+
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS2, color = `Bioregion (n)`)) + #color=Bioregion)) + 
+     geom_point(data = samplescoresenv, aes(colour = `Bioregion (n)`), size = 5, alpha = 0.8) + # Bioregion), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "cornflowerblue","darkorchid2" )) +  
+  stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) #+
+     #labs(colour = "Bioregion")
+
+
+```
+
+```{r plot Ecoregion, echo=FALSE, fig.width=12, fig.height=8, fig.cap= "Figure 2: Ecoregion displayed for all reference sites." }
+
+
+ggplot(data = samplescoresenv, aes(x = NMDS1, y = NMDS2, color=`Ecoregion (n)`)) + 
+     geom_point(data = samplescoresenv, aes(colour = `Ecoregion (n)`), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral")) + 
+   stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30"))
+
+
+
+```
+
+```{r Summary table for alldata, echo=FALSE, fig.width=12, fig.height=8}
+
+
+Season.mrpp.all<- mrpp(bugsnms[,6:119], group=samplescoresenv$Season, distance="bray")
+Ecoregion.mrpp.all<- mrpp(bugsnms[,6:119], group= samplescoresenv$US_L3NAME, distance="bray")
+Basin.mrpp.all<- mrpp(bugsnms[,6:119], group=samplescoresenv$Basin, distance="bray" )
+admin.mrpp.all<- mrpp(bugsnms[,6:119], group=samplescoresenv$ASSESS_REG, distance="bray" )
+Sample.mrpp.all<-mrpp(bugsnms[,6:119], group=samplescoresenv$Gradient, distance="bray" )
+bioregion.mrpp.all<- mrpp(bugsnms[,6:119], group= samplescoresenv$Bioregion, distance="bray")
+Stream.mrpp.all<-mrpp(bugsnms[,6:119], group=samplescoresenv$Order, distance="bray" )
+Standard.mrpp.all<- mrpp(bugsnms[,6:119], samplescoresenv$WQS_CLASS, distance="bray" )
+Trout.mrpp.all<- mrpp(bugsnms[,6:119], samplescoresenv$WQS_TROUT, distance="bray" )
+
+
+
+DT<- data.table(
+  Grouping<- c("Season", "Ecoregion", "Basin", "Admin Region",  "Sample Method","Bioregion", "Stream Order",  "Water Quality Standards", "Trout"), 
+  `A Statistic`<- c(Season.mrpp.all$A, Ecoregion.mrpp.all$A, Basin.mrpp.all$A, admin.mrpp.all$A, bioregion.mrpp.all$A,Sample.mrpp.all$A, Stream.mrpp.all$A, Standard.mrpp.all$A, Trout.mrpp.all$A)
+)
+
+DT<- format(DT, digits=3)
+
+datatable(DT, class='cell-border stripe', rowname=FALSE, colnames=c("Grouping", "A-Statistic"), caption="Table 1: A -statistics for MRPP for group parameters for all reference data (999 permutations, method= Bray)", options=list(pagelength=1, scrollY="35px7", dom='t') )
+
+
+```
+
+
+
+### Coastal Reference Streams NMDS
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The coastal reference streams (Ecoregions Mid-Atlantic Coastal Plain and Southeastern Plains) were separated from the non-coastal streams and reevaluated to identify any patterns that exist within coastal streams. There was minimal separation between spring and fall samples. Ecoregion separation existed between the Middle Atlantic Coast and Southeastern Plains. Some of this separation can be attributed to different basins (Figure 5). However, the coastal reference dataset is limited and samples may be geographically clustered where there is not adequate coverage to create separate IBIs for ecoregions (Figure 3 and 4). MRPP results did not support further separation of groups (Table 2). 
+
+
+
+
+```{r plot Season coastal, echo=FALSE, fig.width=12,  fig.height=8, fig.cap="Figure 3: Season displayed on NMS with coastal data only."}
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2, color= `Season (n)`)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour =`Season (n)`), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) + 
+  stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30"))
+
+```
+
+```{r plot Ecoregion coastal, echo=FALSE, fig.width=12, fig.height=8, fig.cap= "Figure 4: Ecoregion displayed on NMS with coastal data only."}
+
+#Ecoregion
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2, color=`Ecoregion (n)`)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = `Ecoregion (n)`), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral")) + 
+  stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) 
+```
+
+
+```{r plot Basin coastal, echo=FALSE, fig.width=12, fig.height=8, fig.cap= "Figure 5: Basin displayed on NMS with coastal data only."}
+
+#Basin
+
+ggplot(data = samplescoresenv_coast, aes(x = NMDS1, y = NMDS2, color=`Basin (n)`)) + 
+     geom_point(data = samplescoresenv_coast, aes(colour = `Basin (n)`), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque", "darkorchid2", "coral")) + 
+  stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.5, y=1.3, label= "Stress= 0.19", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) 
+
+```
+
+
+
+
+```{r Summary table coastal, echo=FALSE, fig.width=12, fig.height=8}
+
+
+Standard.mrpp.coast<- mrpp(bugsnms_coast[,6:107], samplescoresenv_coast$WQS_CLASS, distance="bray" )
+
+Cate.mrpp.coast<-mrpp(bugsnms_coast[,6:107], group=samplescoresenv_coast$StreamCate, distance="bray" )
+
+Stream.mrpp.coast<-mrpp(bugsnms_coast[,6:107], group=samplescoresenv_coast$Order, distance="bray" )
+
+Sample.mrpp.coast<-mrpp(bugsnms_coast[,6:107], group=samplescoresenv_coast$Gradient, distance="bray" )
+
+bioregion.mrpp.coast<- mrpp(bugsnms_coast[,6:107], group=samplescoresenv_coast$Bioregion, distance="bray" )
+
+
+admin.mrpp.coast<- mrpp(bugsnms_coast[,6:107], group=samplescoresenv_coast$ASSESS_REG, distance="bray" )
+
+Basin.mrpp.coast<- mrpp(bugsnms_coast[,6:107], group=samplescoresenv_coast$Basin_Code, distance="bray" )
+
+Ecoregion.mrpp.coast<- mrpp(bugsnms_coast[,6:107], group= samplescoresenv_coast$US_L3NAME, distance="bray")
+
+Season.mrpp.coastal<- mrpp(bugsnms_coast[,6:107], group=samplescoresenv_coast$Season, distance="bray")
+
+
+
+DT<- data.table(
+  Grouping<- c("Season", "Ecoregion", "Basin", "Admin Region", "Bioregion", "Sample Method", "Stream Order", "Stream Order Category", "Water Quality Standards", "Trout"), 
+  `A Statistic`<- c(Season.mrpp.coastal$A, Ecoregion.mrpp.coast$A, Basin.mrpp.coast$A, admin.mrpp.coast$A, bioregion.mrpp.coast$A,Sample.mrpp.coast$A, Stream.mrpp.coast$A, Cate.mrpp.coast$A, Standard.mrpp.coast$A, "NA"  )    
+)
+
+DT<- format(DT, digits=3)
+
+datatable(DT, class='cell-border stripe', rowname=FALSE, colnames=c("Grouping", "A Statistic"), caption="Table 2: A-statistics for MRPP for Coastal reference streams group parameters (999 permutations, method= Bray)", options=list(pagelength=1, scrollY="35px7", dom='t') )
+
+
+```
+
+
+## Non-coastal Reference Streams NMDS
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Reference streams located in the Mid-Atlantic Coastal Plain ecoregion and Southeastern Piedmont ecoregion were removed from the analysis below. Rare taxa were removed (<=5%) from the community data matrix. After the removal of Coastal streams, several of the environmental variables evaluated did not show differences in macroinvertebrate communities including Administrative office, Basin, Sample Method, Water quality standards, natural trout waters, and ecoregion (Figure 6-10 & Table 3). 
+
+```{r plot Region noncoastal, echo=FALSE, fig.width=12, fig.height=8, fig.cap="Figure 6: Administrative region displayed on non-coastal reference stream ordination."}
+
+#Admin-region
+
+ggplot(data = samplescoresenv_noncoastal, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoastal, aes(colour = `Assessment Region (n)` ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "darkgreen", "darkorchid2")) +
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30"))
+
+
+
+
+```
+
+```{r plot Basin noncoastal, echo=FALSE, fig.width=12, fig.height=8, fig.cap="Figure 7: Stream basin displayed on non-coastal reference stream ordinations."}
+
+# Basin
+ggplot(data = samplescoresenv_noncoastal, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoastal, aes(colour = `Basin (n)` ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "darkorchid2", "coral", "cadetblue", "chartreuse", "cornflowerblue", "cornsilk4", "darkgrey", "darkorange2", "darkslateblue", "burlywood4", "darkgreen", "bique")) + 
+   
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Basin")
+
+```
+
+```{r plot Sample Method noncoastal, echo=FALSE, fig.width=12, fig.height=8, fig.cap="Figure 8: Sample Method displayed on non-coastal reference stream ordinations."}
+
+#Method
+
+ggplot(data = samplescoresenv_noncoastal, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoastal, aes(colour = `Gradient (n)` ), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "dark orange")) + 
+  
+    annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Sample Method")
+
+```
+
+```{r plot Water quality Standard noncoastal, echo=FALSE, fig.width=12,fig.height=8, fig.cap="Figure 9: Non-coastal reference stream ordinations with water quality standard groupings."}
+
+#Water Quality Standard Class
+
+ggplot(data = samplescoresenv_noncoastal, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoastal, aes(colour = `WQS (n)`), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "darkgreen","darkorchid2" )) + 
+ 
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Water Quality Standard")
+```
+
+
+
+```{r Natural trout water noncoastal, echo=FALSE, fig.width=12,fig.height=8,fig.cap= "Figure 10: Non-coastal reference stream ordinations with natural trout water designation groupings." }
+
+#Water Quality Standard Class
+
+
+ggplot(data = samplescoresenv_noncoastal, aes(x = NMDS1, y = NMDS2)) + 
+     geom_point(data = samplescoresenv_noncoastal, aes(colour = `Trout WQS (n)`), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "darkgreen" )) + 
+  
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Trout WQS")
+
+```
+
+
+
+
+```{r Summary table for groups withoutpatterns, echo=FALSE, fig.width=12, fig.height=8}
+
+
+admin.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoastal$ASSESS_REG, distance="bray" )
+Standard.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], samplescoresenv_noncoastal$WQS_CLASS, distance="bray" )
+trout.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], samplescoresenv_noncoastal$WQS_TROUT, distance="bray" )
+
+Basin.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoastal$Basin_Code, distance="bray" )
+
+Ecoregion.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], group= samplescoresenv_noncoastal$US_L3NAME, distance="bray")
+
+Sample.mrpp.noncoast<-mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoastal$Gradient, distance="bray" )
+
+DT2<- data.table(
+  Grouping<- c( "Admin Region","Basin", "Sample Method",  "Water Quality Standards", "Trout"), 
+  `A Statistic`<- c(admin.mrpp.noncoast$A, Basin.mrpp.noncoast$A,Sample.mrpp.noncoast$A, Standard.mrpp.noncoast$A, trout.mrpp.noncoast$A)    
+)
+
+DT2<- format(DT, digits=3)
+
+datatable(DT2, class='cell-border stripe', rowname=FALSE, colnames=c("Grouping", "A- Statistic"), caption="Table 4: A -statistics for noncoastal MRPP for group parameters that did not show a pattern in the ordinations (999 permutations, method= Bray)", options=list(pagelength=1, scrollY="35px7", dom='t') )
+
+
+```
+
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Patterns were visible between several environmental parameters when coastal streams were removed and warrant additional investigation during the development of a Virginia IBI. These include Season, ecoregion, bioregion, and stream order (Figure 11-15). Stream order was categorized as small (Strahler Order 1-3) or large (Strahler Order 4-6) for better visualization. The ellipses shown on the figures below represent 90% of the data by category. 
+
+```{r plot Season noncoastal, echo=FALSE, fig.width=12, fig.height=8, fig.cap="Figure 11: Non-coastal reference stream ordinations with Seasonal groupings."}
+
+ggplot(data = samplescoresenv_noncoastal, aes(x = NMDS1, y = NMDS2, color=`Season (n)`)) + 
+     geom_point(data = samplescoresenv_noncoastal, aes(colour = `Season (n)`), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("orange", "steelblue", "black")) + 
+  stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) 
+
+```
+
+```{r plot bioregion noncoastal, echo=FALSE, fig.width=12, fig.height=8,  fig.cap="Figure 12: Non-coastal reference stream ordinations with bioregion groupings."}
+
+ggplot(data = samplescoresenv_noncoastal, aes(x = NMDS1, y = NMDS2, color=`Bioregion (n)`)) + 
+     geom_point(data = samplescoresenv_noncoastal, aes(colour = `Bioregion (n)`), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "darkorchid2" )) + 
+    stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) 
+
+
+```
+
+
+
+
+```{r plot Stream order noncoastal category, echo=FALSE, fig.width=12, fig.height=8, fig.cap="Figure 13: Non-coastal reference stream ordinations with Stream Order groupings."}
+
+#Stream order
+
+ggplot(data = samplescoresenv_noncoastal, aes(x = NMDS1, y = NMDS2, color=`Stream Category (n)`)) + 
+     geom_point(data = samplescoresenv_noncoastal, aes(colour = `Stream Category (n)`), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+   stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) 
+
+```
+
+
+```{r plot Ecoregion noncoastal, echo=FALSE, fig.width=12, fig.height=8,  fig.cap= "Figure 14: Non-coastal reference stream ordinations with ecoregion groupings."}
+
+#Ecoregion
+
+ggplot(data = samplescoresenv_noncoastal, aes(x = NMDS1, y = NMDS2, color=`Ecoregion (n)`)) + 
+     geom_point(data = samplescoresenv_noncoastal, aes(colour =`Ecoregion (n)`), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "darkorchid2", "coral", "yellow"))+
+     stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "EcoRegion")
+
+```
+```{r plot  Noncoastal bioregion season and size , warnings= FALSE, echo=FALSE, fig.width=12, fig.height=8,  fig.cap= "Figure 15: Non-coastal reference stream ordination with bioregion, stream order, and season category groupings."}
+
+
+ggplot(data = samplescoresenv_noncoastal, aes(x = NMDS1, y = NMDS2, color=`Bioregion, Stream Size, Season (n)`)) + 
+     geom_point(data = samplescoresenv_noncoastal, aes(colour = `Bioregion, Stream Size, Season (n)`), size = 4, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2", "chartreuse", "cyan3", "deeppink", "blue", "darkmagenta", "cornflowerblue", "darkorange", "coral","aquamarine3", "chocolate" )) +
+  scale_shape_manual(values = 16)+
+  stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+     labs(colour = "Stream size, Bioregion, Season")
+
+```
+
+
+
+```{r Summary table Non-coastal, echo=FALSE, fig.width=12, fig.height=8}
+
+Season.mrpp.noncoastal<- mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoastal$Season, distance="bray")
+Ecoregion.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], group= samplescoresenv_noncoastal$US_L3NAME, distance="bray")
+Basin.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoastal$Basin_Code, distance="bray" )
+admin.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoastal$ASSESS_REG, distance="bray" )
+bioregion.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoastal$Bioregion, distance="bray" )
+Sample.mrpp.noncoast<-mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoastal$Gradient, distance="bray" )
+Stream.mrpp.noncoast<-mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoastal$Order, distance="bray" )
+Cate.mrpp.noncoast<-mrpp(bugsnms_noncoast[,6:107], group=samplescoresenv_noncoastal$StreamCate, distance="bray" )
+Standard.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], samplescoresenv_noncoastal$WQS_CLASS, distance="bray" )
+trout.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], samplescoresenv_noncoastal$WQS_TROUT, distance="bray")
+biosizeseason.mrpp.noncoast<- mrpp(bugsnms_noncoast[,6:107], samplescoresenv_noncoastal$BioregionSeason, distance="bray" )
+
+
+
+DT3<- data.table(
+  Grouping<- c("Season",  "Ecoregion",  "Bioregion",  "Stream Order Category", " Bioregion, Stream size, Season"), 
+  `A Statistic`<- c(Season.mrpp.noncoastal$A, Ecoregion.mrpp.noncoast$A, bioregion.mrpp.noncoast$A, Cate.mrpp.noncoast$A, biosizeseason.mrpp.noncoast$A ))
+
+
+DT3<- format(DT3, digits=3)
+
+datatable(DT3, class='cell-border stripe', rowname=FALSE, colnames=c("Grouping", "A- Statistic"), caption="Table 5: A -statistics for non-coastal MRPP for group parameters that showed some separation based on environmental characteristics (999 permutations, method= Bray). This includes all non-coastal reference streams",options=list(pagelength=1, scrollY="35px7", dom='t') )
+
+
+```
+
+
+### Season Separation
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Based on the visual differences between fall and spring seasons observed in among the non-coastal stations, it was deemed necessary to separate the seasons to better evaluate patterns in stream order, ecoregion, and bioregion (Figure 16-22)(Table 6). This evaluation will help us determine if further separation by environmental characteristics is necessary for Virginia IBI development. 
+
+```{r spring plot Ecoregion, echo=FALSE, fig.width=12, fig.height=8, fig.cap="Figure 16: Non-coastastal spring reference streams ordinations with ecoregion groupings"}
+
+#Ecoregion
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS1, y = NMDS2, color= `Ecoregion (n)`)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = `Ecoregion (n)`), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred","darkorchid2", "coral", "dark orange")) + 
+  stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30"))+
+  ggtitle("Spring Ecoregion")
+
+```
+
+```{r fall plot Ecoregion, echo=FALSE, fig.width=12, fig.height=8, fig.cap="Figure 17: Non-coastal fall reference stream ordinations with ecoregion groupings."}
+
+#Ecoregion
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS1, y = NMDS2, color=`Ecoregion (n)`)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = `Ecoregion (n)`), size = 5, alpha = 0.5) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred",  "darkorchid2", "coral", "dark orange")) + 
+  stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size =6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+
+  ggtitle("Fall Ecoregion")
+
+
+```
+
+
+```{r plot Spring bioregion noncoastal, echo=FALSE, fig.width=12,fig.height=8, fig.cap="Figure 18: Non-coastal spring reference stream ordinations with bioregion groupings."}
+
+springmount<-filter(samplescoresenv_Spring, samplescoresenv_Spring$Bioregion=="Mountain")
+springPied<-filter(samplescoresenv_Spring, samplescoresenv_Spring$Bioregion=="Piedmont")
+
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS1, y = NMDS2, color= `Bioregion (n)`)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = `Bioregion (n)`), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred","darkorchid2" )) + 
+  stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30"))+ 
+  ggtitle("Spring Bioregion")
+
+```
+
+```{r plot Fall bioregion noncoastal, echo=FALSE, fig.width=12, fig.height=8, fig.cap="Figure 19: Non-coastal fall reference stream ordination with bioregion groupings."}
+
+fallmount<-filter(samplescoresenv_Fall, samplescoresenv_Fall$Bioregion=="Mountain")
+FallPied<-filter(samplescoresenv_Fall, samplescoresenv_Fall$Bioregion=="Piedmont")
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS1, y = NMDS2, color=`Bioregion (n)`)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = `Bioregion (n)`), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("darkred", "darkorchid2" )) + 
+   # geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+   #     data = vectors.fall, size =1, alpha = 0.5, colour = "grey30") +
+   #   geom_text(data = vectors.fall, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+   #     fontface = "bold", label = row.names(vectors.fall)) + 
+  stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+
+  ggtitle("Fall Bioregion")
+
+```
+
+
+```{r plot  Spring Stream order noncoastal category, echo=FALSE, fig.width=12,fig.height=8,  fig.cap= "Figure 20: Non-coastal spring reference stream ordination with stream order cateogry groupings."}
+
+#Stream order
+springsmall<-filter(samplescoresenv_Spring, samplescoresenv_Spring$StreamCate=="Small")
+springlarge<-filter(samplescoresenv_Spring, samplescoresenv_Spring$StreamCate=="Large")
+
+
+ggplot(data = samplescoresenv_Spring, aes(x = NMDS1, y = NMDS2, color=`Stream Category (n)`)) + 
+     geom_point(data = samplescoresenv_Spring, aes(colour = `Stream Category (n)`), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+
+   stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.17", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+
+  ggtitle("Spring Stream Order Category")
+
+```
+
+
+```{r plot  Fall Stream order noncoastal category, echo=FALSE, fig.width=12, fig.height=8,  fig.cap= "Figure 21: Non-coastal fall reference stream ordination with stream order category groupings."}
+
+#Stream order
+fallsmall<-filter(samplescoresenv_Fall, samplescoresenv_Fall$StreamCate=="Small")
+falllarge<-filter(samplescoresenv_Fall, samplescoresenv_Fall$StreamCate=="Large")
+
+ggplot(data = samplescoresenv_Fall, aes(x = NMDS1, y = NMDS2, color=`Stream Category (n)`)) + 
+     geom_point(data = samplescoresenv_Fall, aes(colour = `Stream Category (n)`), size = 5, alpha = 0.8) + 
+     scale_colour_manual(values = c("blue", "deeppink", "cyan", "darkred", "bisque","darkorchid2" )) + 
+    stat_ellipse( size=1.5, level=0.90)+
+  annotate("text", x=0.8, y=1.3, label= "Stress= 0.18", size=6)+
+     theme(axis.title = element_text(size = 14, face = "bold", colour = "grey30"), 
+     panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+     axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+     legend.title = element_text(size = 15, face = "bold", colour = "grey30"), 
+     legend.text = element_text(size = 15, colour = "grey30")) +
+
+  ggtitle("Fall Stream Order Category")
+
+```
+
+
+
+
+```{r Spring Summary table, echo=FALSE, fig.width=12, fig.height=8}
+
+bioregion.mrpp.Spring<- mrpp(bugsnms_Spring[,6:100], group= samplescoresenv_Spring$Bioregion, distance="bray")
+
+bioregion.mrpp.Fall<- mrpp(bugsnms_Fall[,6:107], group= samplescoresenv_Fall$Bioregion, distance="bray")
+
+
+Cate.mrpp.Spring<-mrpp(bugsnms_Spring[,6:100], group=samplescoresenv_Spring$StreamCate, distance="bray" )
+Cate.mrpp.Fall<-mrpp(bugsnms_Fall[,6:107], group=samplescoresenv_Fall$StreamCate, distance="bray" )
+
+Ecoregion.mrpp.Spring<- mrpp(bugsnms_Spring[,6:100], group= samplescoresenv_Spring$US_L3NAME, distance="bray")
+Ecoregion.mrpp.Fall<- mrpp(bugsnms_Fall[,6:107], group= samplescoresenv_Fall$US_L3NAME, distance="bray")
+
+DT4<- data.table(
+  Grouping<- c("Ecoregion", "Bioregion",  "Stream Order Category"), 
+  `A Statistic`<- c(Ecoregion.mrpp.Spring$A, bioregion.mrpp.Spring$A, Cate.mrpp.Spring$A )
+  
+)
+
+DT4<- format(DT4, digits=3)
+
+datatable(DT4, class='cell-border stripe', rowname=FALSE, colnames=c("Grouping", "A-Statistic"), caption="Table 6: A-statistics for Spring community MRPP for group parameters (999 permutations, method= Bray)",options=list(pagelength=1, scrollY="35px7", dom='t'))
+
+
+
+
+DT5<- data.table(
+  Grouping<- c("Ecoregion", "Bioregion", "Stream Order Category"), 
+  `A Statistic`<- c(Ecoregion.mrpp.Fall$A, bioregion.mrpp.Fall$A, Cate.mrpp.Fall$A) 
+)
+
+DT5<- format(DT5, digits=3)
+
+datatable(DT5, class='cell-border stripe', rowname=FALSE, colnames=c("Grouping", "A-Statistic"), caption="Table 7: A-statistics for fall community MRPP for group parameters (999 permutations, method= Bray)",options=list(pagelength=1, scrollY="35px7", dom='t')  )
+
+```
+
+
+
+## Recommendations
+
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Based on the NMS ordinations shown in the results section above, we recommend several environmental variables be investigated further for differences in benthic macroinvertebrate community structure during IBI development. This investigative step is important in metric development so that the metric accurately represents the quality of a stream and minimizes variation caused by environmental characteristics. Environmental variation in benthic macroinvertebrate communities is inevitable; however, the ability to identify and minimize the environmental noise will allow biologists to better identify and understand stressed conditions. We recommend further investigation and separation of the following environmental parameters during the next phase of genus metric development (n represents the number of reference sites in each category): 
+
+
+-	Coastal (n sites= `r format(sum(!duplicated(Refbugs_coast$StationID)))`;  n samples =`r format(nrow(Refbugs_coast))`)  and Non-Coastal streams (n sites= `r format(sum(!duplicated(Refbugs$StationID)))`;  n samples= `r format(nrow(Refbugs))`)
+-	Non-coastal Spring (n sites= `r format(sum(!duplicated(Springbugs2$StationID)))`; n samples= `r format(nrow(Springbugs2))`) and Non-coastal Fall (n sites= `r format(sum(!duplicated(Fallbugs2$StationID)))`; n samples= `r format(nrow(Fallbugs2))`)
+-	Non-coastal, Spring, Mountain (n sites= `r format( sum(!duplicated(springmount$StationID)))`; n samples= `r format(nrow(springmount))` ) and Non-coastal, Spring, Piedmont (n sites= `r format( sum(!duplicated(springPied$StationID)))`; n samples= `r format(nrow(springPied))` )
+-	Non-coastal, Fall, Mountain (n sites= `r format( sum(!duplicated(fallmount$StationID)))`; n samples= `r format(nrow(fallmount))` ) and Non-coastal, Fall, Piedmont (n sites= `r format( sum(!duplicated(FallPied$StationID)))`; n samples =`r format(nrow(FallPied))` )
+-	Non-coastal, Spring, Large Order (n sites= `r format(sum(!duplicated(springlarge$StationID)))`; n samples=`r format(nrow(springlarge))` ) and Non-coastal, Spring, Small Order (n sites= `r format(sum(!duplicated(springsmall$StationID)))`; n samples= `r format(nrow(springsmall))` )
+-	Non-coastal, Fall, Large Order (n sites= `r format (sum(!duplicated(falllarge$StationID)))`; n samples=`r format(nrow(falllarge))` ) and Non-coastal, Fall, Small Order (n sites= `r format(sum(!duplicated(fallsmall$StationID)))`; n samples=`r format(nrow(fallsmall))` )
+
+
+## Conclusion
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Several environmental characteristics in Virginia tend to have a significant effect on the macroinvertebrate community found in reference streams. These characteristics must be accounted for in order to create the most accurate genus level IBI. Specifically, the ordinations show clear separation in reference communities found in coastal systems and non-coastal systems. This separation makes sense given the macroinvertebrate sampling method (riffle vs. MACS) and the environmental variables often associated with coastal streams versus non-coastal streams, including slower moving flow, finer substrate, and potentially brackish water. These environmental variables directly affect the habitat and water quality resulting in lower dissolved oxygen concentrations, higher conductivity levels, and higher pH. The resulting macroinvertebrate community will have adaptations to withstand these conditions.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Among coastal streams, no other environmental characteristics were identified as showing separation in the benthic macroinvertebrate community. However, among the non-coastal streams there was slight separation in the ordinations between spring and fall communities. Spring sampling is conducted between March and June and fall sampling is conducted between September and November. In Virginia, spring and fall seasons can vary greatly but Spring is often characterized by higher precipitation and cooler temperatures while Fall is often drier and warmer. There was also separation between ecoregions in coastal streams.  Further investigation is warranted to identify the need for two separate IBI to characterize spring and fall macroinvertebrate communities. 
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Non-coastal spring and fall communities were separated to analyze patterns in other environmental variables among season. Bioregion and stream order showed some minor grouping between categories for both spring and fall. Further investigation is warranted to identify if these categories require their own IBI. However, the number of streams in each category is reduced due to the number of categories required and may limit the ability to develop a robust IBI for each group. 
+
+## References
+
+Biondini, Mario E., Paul W. Mielke, and Kenneth J. Berry. "Data-dependent permutation techniques for the analysis of ecological data." *Vegetatio* 75.3 (1988): 161-168.
+
+Dodds, W. K., Gido, K., Whiles, M. R., Daniels, M. D., & Grudzinski, B. P. (2015). The stream biome gradient concept: Factors controlling lotic systems across broad biogeographic scales. *Freshwater Science*, 34(1), 1-19.
+
+McCune, B., & Grace, J. B. (2002.) *Analysis of ecological communities*. Gleneden Beach, Oregon: MjM Software Design. Chapter 24.
+
+Poff, N. L., Olden, J. D., Vieira, N. K., Finn, D. S., Simmons, M. P., & Kondratieff, B. C. (2006). Functional trait niches of North American lotic insects: traits-based ecological applications in light of phylogenetic relationships. *Journal of the North American Benthological Society*, 25(4), 730-755.
+
+R Core Team (2019). R: A language and environment for statistical computing. R Foundation  for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
+
+Tetra Tech, Inc. 2003. A Stream Condition Index for Virginia Non-Coastal Streams. Tetra Tech, Inc. Owings Mills, Maryland. Prepared for Virginia Department of Environmental Quality, Richmond, Virginia. 
+https://www.deq.virginia.gov/home/showpublisheddocument/4317/637461491373170000
+
+Vannote, R. L., Minshall, G. W., Cummins, K. W., Sedell, J. R., & Cushing, C. E. (1980). The river continuum concept. *Canadian journal of fisheries and aquatic sciences*, 37(1), 130-137.
+
+Virginia Department of Environmental Quality. 2006. Using Probabilistic Monitoring Data to Validate the Non-Coastal Virginia Stream Condition Index. Technical Bulletin. WQA/2006-001.Richmond, Virginia.
+https://www.deq.virginia.gov/home/showpublisheddocument/4319/637461491379900000
+
+
+Virginia Department of Environmental Quality. 2013. The Virginia Coastal Plain Macroinvertebrate Index. Technical Bulletin. WQA/2013-002.Richmond, Virginia.
+https://www.deq.virginia.gov/home/showpublisheddocument/4315/637461491365370000
+
+
+
